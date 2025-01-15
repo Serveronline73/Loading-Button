@@ -18,18 +18,6 @@ class _MyHomePageState extends State<MyHomePage> {
   int selectedYear = 2025;
   Currency selectedCurrency = Currency.create('TRY', 2, symbol: '₺');
 
-  void _updateBetrag1(String value) {
-    setState(() {
-      betrag1 = double.tryParse(value) ?? 0.00;
-    });
-  }
-
-  void _updateBetrag2(String value) {
-    setState(() {
-      betrag2 = double.tryParse(value) ?? 0.00;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     double gesamtsumme = gesamtbetrag + betrag1 + betrag2;
