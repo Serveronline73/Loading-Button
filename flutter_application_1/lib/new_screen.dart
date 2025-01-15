@@ -63,8 +63,6 @@ class NewScreen extends StatelessWidget {
                       builder: (context) => ItemDetailScreen(
                         title: items[index]['title']!,
                         subtitle: items[index]['subtitle']!,
-
-                        //currency: selectedCurrency,
                       ),
                     ),
                   );
