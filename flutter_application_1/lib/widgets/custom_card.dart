@@ -62,7 +62,8 @@ class CustomCard extends StatelessWidget {
                 },
                 child: _buildButton(
                   color: const Color(0xFF488AEC),
-                  shadowColor: const Color(0xFF488AEC).withValues(alpha: 0.19),
+                  shadowColor:
+                      const Color(0xFF488AEC).withAlpha((0.19 * 255).toInt()),
                   textColor: Colors.white,
                   iconColor: Colors.white,
                   text: 'Aidat Ödemesi',
@@ -72,7 +73,8 @@ class CustomCard extends StatelessWidget {
               const SizedBox(width: 10),
               _buildButton(
                 color: Colors.white,
-                shadowColor: const Color(0xFF0B1625).withValues(alpha: 0.19),
+                shadowColor:
+                    const Color(0xFF0B1625).withAlpha((0.19 * 255).toInt()),
                 textColor: Colors.black,
                 iconColor: Colors.black,
                 text: 'Ek Ödeme',
@@ -105,7 +107,7 @@ class CustomCard extends StatelessWidget {
             spreadRadius: -1,
           ),
           BoxShadow(
-            color: shadowColor.withValues(alpha: 0.17),
+            color: shadowColor.withAlpha((0.17 * 255).toInt()),
             offset: const Offset(0, 2),
             blurRadius: 4,
             spreadRadius: -1,
