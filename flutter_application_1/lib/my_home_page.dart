@@ -126,17 +126,17 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
             const SizedBox(height: 16.0),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Aidat Ödemesi'),
-              keyboardType: TextInputType.number,
-              onChanged: _updateBetrag1,
-            ),
-            const SizedBox(height: 16.0),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Ek Ödemesi'),
-              keyboardType: TextInputType.number,
-              onChanged: _updateBetrag2,
-            ),
+            // TextField(
+            //   decoration: const InputDecoration(labelText: 'Aidat Ödemesi'),
+            //   keyboardType: TextInputType.number,
+            //   onChanged: _updateBetrag1,
+            // ),
+            // const SizedBox(height: 16.0),
+            // TextField(
+            //   decoration: const InputDecoration(labelText: 'Ek Ödemesi'),
+            //   keyboardType: TextInputType.number,
+            //   onChanged: _updateBetrag2,
+            // ),
             const SizedBox(height: 16.0),
             const Text(
               'Site Yönetimi: Fatih Sevindik',
