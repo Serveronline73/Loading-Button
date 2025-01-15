@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../new_screen.dart';
+import '../screens/new_screen.dart';
 
 class CustomCard extends StatelessWidget {
   const CustomCard({super.key});
