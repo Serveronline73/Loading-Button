@@ -38,35 +38,45 @@ class NewScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Blok Listesi'),
       ),
-      body: Container(
-        color: Colors.black,
-        child: ListView.builder(
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            return Card(
-              child: ListTile(
-                leading: Icon(
-                  Icons.house,
-                  size: 60,
-                  color: colors[index % colors.length],
-                ),
-                title: Text(
-                  items[index]['title']!,
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(items[index]['subtitle']!),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ItemDetailScreen(
-                        title: items[index]['title']!,
-                        subtitle: items[index]['subtitle']!,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: Container(
+                color: Colors.black,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      child: ListTile(
+                        leading: Icon(
+                          Icons.house,
+                          size: 60,
+                          color: colors[index % colors.length],
+                        ),
+                        title: Text(
+                          items[index]['title']!,
+                          style: const TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(items[index]['subtitle']!),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ItemDetailScreen(
+                                title: items[index]['title']!,
+                                subtitle: items[index]['subtitle']!,
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             );
           },
