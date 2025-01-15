@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/item_detail_screen.dart';
+import 'package:flutter_application_1/screens/item_detail_screen.dart';
 import 'package:money2/money2.dart';
 
 class NewScreen extends StatelessWidget {
