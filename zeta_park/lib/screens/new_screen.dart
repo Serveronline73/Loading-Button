@@ -69,6 +69,11 @@ class NewScreen extends StatelessWidget {
                               builder: (context) => ItemDetailScreen(
                                 title: items[index]['title']!,
                                 subtitle: items[index]['subtitle']!,
+                                blockAmounts: const <String,
+                                    Map<
+                                        String,
+                                        Map<int,
+                                            double>>>{}, // Add the required argument here
                               ),
                             ),
                           );
