@@ -32,22 +32,22 @@ class CustomCard extends StatelessWidget {
         color: const Color(0xFFFFFAEB),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.01),
+            color: Colors.black.withOpacity(0.01),
             offset: const Offset(0, 187),
             blurRadius: 75,
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             offset: const Offset(0, 105),
             blurRadius: 63,
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.09),
+            color: Colors.black.withOpacity(0.09),
             offset: const Offset(0, 47),
             blurRadius: 47,
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             offset: const Offset(0, 12),
             blurRadius: 26,
           ),
