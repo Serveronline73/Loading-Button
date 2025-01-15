@@ -63,7 +63,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             ),
           ),
           Container(
-            color: Colors.black.withValues(alpha: 0.5),
+            color: Colors.black.withAlpha(128),
             padding: const EdgeInsets.all(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
