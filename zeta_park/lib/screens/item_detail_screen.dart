@@ -6,11 +6,13 @@ import 'package:money2/money2.dart';
 class ItemDetailScreen extends StatefulWidget {
   final String title;
   final String subtitle;
+  final Map<String, Map<String, Map<int, double>>> blockAmounts;
 
   const ItemDetailScreen({
     super.key,
     required this.title,
     required this.subtitle,
+    required this.blockAmounts,
   });
 
   @override
@@ -18,7 +20,7 @@ class ItemDetailScreen extends StatefulWidget {
 }
 
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
-  int selectedYear = 2024;
+  int selectedYear = 2025;
   String selectedMonth = 'Ocak';
   Currency selectedCurrency = Currency.create('TRY', 2, symbol: '₺');
 
@@ -45,8 +47,12 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       (i) => {
         'month': _getMonthName(i + 1),
         'year': selectedYear,
-        'aidat': 0.00,
-        'ek': 0.00,
+        'aidat': widget.blockAmounts[widget.title]?[_getMonthName(i + 1)]
+                ?[selectedYear] ??
+            0.00,
+        'ek': widget.blockAmounts[widget.title]?[_getMonthName(i + 1)]
+                ?[selectedYear] ??
+            0.00,
       },
     );
 
