@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/data/data_manager.dart';
 import 'package:flutter_application_1/screens/item_detail_screen.dart';
 import 'package:money2/money2.dart';
 
@@ -6,6 +7,7 @@ class NewScreen extends StatelessWidget {
   NewScreen({super.key});
 
   final Currency selectedCurrency = Currency.create('TRY', 2, symbol: '₺');
+  final DataManager _dataManager = DataManager();
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +51,7 @@ class NewScreen extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: items.length,
                   itemBuilder: (context, index) {
+                    final blockAmounts = _dataManager.getBlockAmounts();
                     return Card(
                       child: ListTile(
                         leading: Icon(
@@ -69,11 +72,7 @@ class NewScreen extends StatelessWidget {
                               builder: (context) => ItemDetailScreen(
                                 title: items[index]['title']!,
                                 subtitle: items[index]['subtitle']!,
-                                blockAmounts: const <String,
-                                    Map<
-                                        String,
-                                        Map<int,
-                                            double>>>{}, // Add the required argument here
+                                blockAmounts: blockAmounts,
                               ),
                             ),
                           );
