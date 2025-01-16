@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/data/data_manager.dart';
 import 'package:flutter_application_1/screens/item_detail_screen.dart';
 import 'package:flutter_application_1/widgets/custom_card.dart';
 import 'package:money2/money2.dart';
@@ -14,20 +15,50 @@ class _MyHomePageState extends State<MyHomePage> {
   double gesamtbetrag = 0.00;
   double betrag1 = 0.00;
   double betrag2 = 0.00;
+  double ausgabe = 0.00;
+  String ausgabeDescription = '';
   String selectedBlock = 'Zeta Park Blok 1/1';
   String selectedMonth = 'Ocak';
   int selectedYear = 2025;
   Currency selectedCurrency = Currency.create('TRY', 2, symbol: '₺');
+
   final TextEditingController _betrag1Controller = TextEditingController();
   final TextEditingController _betrag2Controller = TextEditingController();
+  final TextEditingController _ausgabeController = TextEditingController();
+  final TextEditingController _ausgabeDescriptionController =
+      TextEditingController();
+  final DataManager _dataManager = DataManager();
 
-  final Map<String, Map<String, Map<int, Map<String, double>>>> blockAmounts =
-      {};
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    await _dataManager.loadData();
+    _loadAmounts();
+  }
+
+  double getMonthlyTotal() {
+    double total = 0.0;
+    final blockAmounts = _dataManager.getBlockAmounts();
+    blockAmounts.forEach((block, monthData) {
+      if (monthData.containsKey(selectedMonth) &&
+          monthData[selectedMonth]!.containsKey(selectedYear)) {
+        var amounts = monthData[selectedMonth]![selectedYear]!;
+        total += (amounts['aidat'] ?? 0.0) + (amounts['ek'] ?? 0.0);
+      }
+    });
+    return total;
+  }
 
   @override
   void dispose() {
     _betrag1Controller.dispose();
     _betrag2Controller.dispose();
+    _ausgabeController.dispose();
+    _ausgabeDescriptionController.dispose();
     super.dispose();
   }
 
@@ -49,6 +80,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     _buildMonthYearDropdowns(),
                     const SizedBox(height: 16.0),
                     _buildPaymentCard(),
+                    const SizedBox(height: 16.0),
+                    _buildExpensesCard(),
                   ],
                 ),
               ),
@@ -188,9 +221,9 @@ class _MyHomePageState extends State<MyHomePage> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8.0),
-            const Text('Visa\n**** **** **** 4243'),
-            Divider(thickness: 1, color: Colors.grey[300]),
-            const SizedBox(height: 8.0),
+            // const Text('Visa\n**** **** **** 4243'),
+            // Divider(thickness: 1, color: Colors.grey[300]),
+            // const SizedBox(height: 8.0),
             _buildPaymentSummary(),
           ],
         ),
@@ -233,6 +266,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildPaymentSummary() {
+    final monthlyTotal = getMonthlyTotal();
     return Column(
       children: [
         Row(
@@ -251,22 +285,159 @@ class _MyHomePageState extends State<MyHomePage> {
                 '${Money.fromInt((betrag2 * 100).toInt(), code: selectedCurrency.code)}'),
           ],
         ),
+        const Divider(),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Toplam Ödeme:'),
+            Text('Toplam Ödeme ($selectedMonth $selectedYear):'),
             Text(
-                '${Money.fromInt((gesamtbetrag * 100).toInt(), code: selectedCurrency.code)}'),
+                '${Money.fromInt((monthlyTotal * 100).toInt(), code: selectedCurrency.code)}'),
           ],
         ),
       ],
     );
   }
 
+  Widget _buildExpensesCard() {
+    final expenses = _dataManager.getExpenses(selectedMonth, selectedYear);
+
+    return Card(
+      elevation: 4.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Ausgaben für $selectedMonth $selectedYear',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            TextField(
+              controller: _ausgabeController,
+              decoration: InputDecoration(
+                labelText: 'Ausgabenbetrag',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                setState(() {
+                  ausgabe = double.tryParse(value) ?? 0.00;
+                });
+              },
+            ),
+            const SizedBox(height: 16.0),
+            TextField(
+              controller: _ausgabeDescriptionController,
+              decoration: InputDecoration(
+                labelText: 'Beschreibung',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  ausgabeDescription = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () async {
+                if (ausgabe > 0 && ausgabeDescription.isNotEmpty) {
+                  final now = DateTime.now();
+                  await _dataManager.saveExpense(
+                    ausgabe,
+                    ausgabeDescription,
+                    '${now.day}.${now.month}.${now.year}',
+                    selectedMonth,
+                    selectedYear,
+                  );
+                  setState(() {
+                    ausgabe = 0.00;
+                    ausgabeDescription = '';
+                    _ausgabeController.clear();
+                    _ausgabeDescriptionController.clear();
+                  });
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Ausgabe wurde gespeichert'),
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Ausgabe speichern'),
+            ),
+            if (expenses.isNotEmpty) ...[
+              const SizedBox(height: 16.0),
+              const Divider(),
+              const SizedBox(height: 16.0),
+              const Text(
+                'Ausgabenliste',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8.0),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: expenses.length,
+                itemBuilder: (context, index) {
+                  final expense = expenses[index];
+                  return ListTile(
+                    title: Text(expense['description']),
+                    subtitle: Text(expense['date']),
+                    trailing: Text(
+                      '${Money.fromInt((expense['amount'] * 100).toInt(), code: selectedCurrency.code)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16.0),
+              Divider(thickness: 1, color: Colors.grey[300]),
+              const SizedBox(height: 8.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Gesamtausgaben für $selectedMonth $selectedYear:',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '${Money.fromInt((expenses.fold<double>(0, (sum, expense) => sum + expense['amount']) * 100).toInt(), code: selectedCurrency.code)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   void _onConfirmPressed() {
+    _saveAmounts();
     setState(() {
-      gesamtbetrag += betrag1 + betrag2;
-      _saveAmounts();
       betrag1 = 0.00;
       betrag2 = 0.00;
       _betrag1Controller.clear();
@@ -287,6 +458,40 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _saveAmounts() {
+    _dataManager.savePayment(
+      selectedBlock,
+      selectedMonth,
+      selectedYear,
+      betrag1,
+      betrag2,
+    );
+  }
+
+  void _loadAmounts() {
+    final blockAmounts = _dataManager.getBlockAmounts();
+    if (blockAmounts.containsKey(selectedBlock) &&
+        blockAmounts[selectedBlock]!.containsKey(selectedMonth) &&
+        blockAmounts[selectedBlock]![selectedMonth]!
+            .containsKey(selectedYear)) {
+      final amounts =
+          blockAmounts[selectedBlock]![selectedMonth]![selectedYear]!;
+      setState(() {
+        betrag1 = amounts['aidat'] ?? 0.00;
+        betrag2 = amounts['ek'] ?? 0.00;
+        _betrag1Controller.text = betrag1.toString();
+        _betrag2Controller.text = betrag2.toString();
+      });
+    } else {
+      setState(() {
+        betrag1 = 0.00;
+        betrag2 = 0.00;
+        _betrag1Controller.clear();
+        _betrag2Controller.clear();
+      });
+    }
+  }
+
   void _showConfirmationDialog() {
     showDialog(
       context: context,
@@ -303,10 +508,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             TextButton(
               onPressed: () {
-                setState(() {
-                  betrag1 = 0.00;
-                  betrag2 = 0.00;
-                });
                 Navigator.of(context).pop();
                 Navigator.push(
                   context,
@@ -314,17 +515,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     builder: (context) => ItemDetailScreen(
                       title: selectedBlock,
                       subtitle: 'Aidat ödeme ve Ek Ödeme Bilgileri.',
-                      blockAmounts: blockAmounts.map((key, value) {
-                        return MapEntry(key, value.map((innerKey, innerValue) {
-                          return MapEntry(innerKey,
-                              innerValue.map((innerMostKey, innerMostValue) {
-                            return MapEntry(
-                                innerMostKey,
-                                innerMostValue['aidat']! +
-                                    innerMostValue['ek']!);
-                          }));
-                        }));
-                      }),
+                      blockAmounts: _dataManager.getBlockAmounts(),
                     ),
                   ),
                 );
@@ -335,58 +526,5 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
-  }
-
-  void _saveAmounts() {
-    if (!blockAmounts.containsKey(selectedBlock)) {
-      blockAmounts[selectedBlock] = {};
-    }
-    if (!blockAmounts[selectedBlock]!.containsKey(selectedMonth)) {
-      blockAmounts[selectedBlock]![selectedMonth] = {};
-    }
-    blockAmounts[selectedBlock]![selectedMonth]![selectedYear] = {
-      'aidat': betrag1,
-      'ek': betrag2,
-    };
-  }
-
-  void _loadAmounts() {
-    if (blockAmounts.containsKey(selectedBlock) &&
-        blockAmounts[selectedBlock]!.containsKey(selectedMonth) &&
-        blockAmounts[selectedBlock]![selectedMonth]!
-            .containsKey(selectedYear)) {
-      final amounts =
-          blockAmounts[selectedBlock]![selectedMonth]![selectedYear]!;
-      betrag1 = amounts['aidat'] ?? 0.00;
-      betrag2 = amounts['ek'] ?? 0.00;
-    } else {
-      betrag1 = 0.00;
-      betrag2 = 0.00;
-    }
-  }
-
-  void _processBlockAmounts(Map<String, Map<String, Map<int, double>>> data) {
-    // ...function implementation...
-  }
-
-  late Map<String, Map<String, Map<int, double>>> adjustedBlockAmounts;
-
-  @override
-  void initState() {
-    super.initState();
-    adjustedBlockAmounts = blockAmounts.map((key, value) {
-      return MapEntry(key, value.map((innerKey, innerValue) {
-        return MapEntry(innerKey,
-            innerValue.map((innerMostKey, innerMostValue) {
-          // Assuming you need to extract a specific double value from the innermost map
-          double extractedValue =
-              innerMostValue['someKey'] ?? 0.0; // Adjust 'someKey' as needed
-          return MapEntry(innerMostKey, extractedValue);
-        }));
-      }));
-    });
-
-    // Pass the adjusted argument to the function
-    _processBlockAmounts(adjustedBlockAmounts);
   }
 }
