@@ -6,7 +6,7 @@ import 'package:money2/money2.dart';
 class ItemDetailScreen extends StatefulWidget {
   final String title;
   final String subtitle;
-  final Map<String, Map<String, Map<int, double>>> blockAmounts;
+  final Map<String, Map<String, Map<int, Map<String, double>>>> blockAmounts;
 
   const ItemDetailScreen({
     super.key,
@@ -44,15 +44,17 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
     final List<Map<String, dynamic>> payments = List.generate(
       12,
-      (i) => {
-        'month': _getMonthName(i + 1),
-        'year': selectedYear,
-        'aidat': widget.blockAmounts[widget.title]?[_getMonthName(i + 1)]
+      (i) {
+        final month = _getMonthName(i + 1);
+        final amounts = widget.blockAmounts[widget.title]?[month]
                 ?[selectedYear] ??
-            0.00,
-        'ek': widget.blockAmounts[widget.title]?[_getMonthName(i + 1)]
-                ?[selectedYear] ??
-            0.00,
+            {'aidat': 0.0, 'ek': 0.0};
+        return {
+          'month': month,
+          'year': selectedYear,
+          'aidat': amounts['aidat'] ?? 0.0,
+          'ek': amounts['ek'] ?? 0.0,
+        };
       },
     );
 
