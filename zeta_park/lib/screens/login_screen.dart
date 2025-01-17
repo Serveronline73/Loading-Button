@@ -79,8 +79,8 @@ class LoginScreen extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.white.withOpacity(0.01),
-                Colors.black.withOpacity(0.5),
+                Colors.white.withValues(alpha: 0.01),
+                Colors.black.withValues(alpha: 0.5),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
