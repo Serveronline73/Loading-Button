@@ -13,12 +13,13 @@ class DataManager {
 
   Map<String, Map<String, Map<int, Map<String, double>>>> blockAmounts = {};
   List<Map<String, dynamic>> expenses = [];
-
+// Laden der Daten Ausgabenliste und Zahlungen
   Future<void> loadData() async {
     await loadExpenses();
     await loadPayments();
   }
 
+// Laden der Ausgabenliste
   Future<void> loadExpenses() async {
     final prefs = await SharedPreferences.getInstance();
     final expensesJson = prefs.getString('expenses');
@@ -28,6 +29,7 @@ class DataManager {
     }
   }
 
+// Laden der Zahlungen
   Future<void> loadPayments() async {
     final prefs = await SharedPreferences.getInstance();
     final paymentsJson = prefs.getString('payments');
@@ -44,6 +46,7 @@ class DataManager {
     }
   }
 
+  // Speichern der Ausgaben
   Future<void> saveExpense(double amount, String description, String date,
       String month, int year) async {
     expenses.add({
@@ -58,6 +61,7 @@ class DataManager {
     await prefs.setString('expenses', jsonEncode(expenses));
   }
 
+// Ausgabenliste Monat und Jahr
   List<Map<String, dynamic>> getExpenses(String month, int year) {
     return expenses
         .where(
@@ -84,5 +88,52 @@ class DataManager {
 
   Map<String, Map<String, Map<int, Map<String, double>>>> getBlockAmounts() {
     return blockAmounts;
+  }
+
+  Map<DateTime, double> entryMap = {};
+
+  Future<void> saveEntry(DateTime date, double value) async {
+    entryMap[date] = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        'entries',
+        jsonEncode(entryMap
+            .map((key, value) => MapEntry(key.toIso8601String(), value))));
+  }
+
+  Future<void> loadEntries() async {
+    final prefs = await SharedPreferences.getInstance();
+    final entriesJson = prefs.getString('entries');
+    if (entriesJson != null) {
+      final Map<String, dynamic> decoded = jsonDecode(entriesJson);
+      entryMap = decoded
+          .map((key, value) => MapEntry(DateTime.parse(key), value.toDouble()));
+    }
+  }
+
+  Map<DateTime, double> getEntries() {
+    return entryMap;
+  }
+
+  Future<void> saveNebenkosten(String key, String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(key, value);
+  }
+
+  Future<void> deleteExpense(Map<String, dynamic> expense) async {
+    expenses.remove(expense);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('expenses', jsonEncode(expenses));
+  }
+
+  Future<void> updateExpense(Map<String, dynamic> expense, double newAmount,
+      String newDescription) async {
+    final int index = expenses.indexOf(expense);
+    if (index != -1) {
+      expenses[index]['amount'] = newAmount;
+      expenses[index]['description'] = newDescription;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('expenses', jsonEncode(expenses));
+    }
   }
 }
