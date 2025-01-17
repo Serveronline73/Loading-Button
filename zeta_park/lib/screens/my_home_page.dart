@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/data/data_manager.dart';
+import 'package:flutter_application_1/repository/sharedPreferences.dart';
 import 'package:flutter_application_1/screens/item_detail_screen.dart';
 import 'package:flutter_application_1/widgets/custom_card.dart';
 import 'package:money2/money2.dart';
@@ -37,6 +38,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _loadInitialData() async {
     await _dataManager.loadData();
+    selectedBlock = await SharedPreferencesHelper.loadString('selectedBlock') ??
+        selectedBlock;
+    selectedMonth = await SharedPreferencesHelper.loadString('selectedMonth') ??
+        selectedMonth;
+    selectedYear =
+        await SharedPreferencesHelper.loadInt('selectedYear') ?? selectedYear;
+    betrag1 = await SharedPreferencesHelper.loadDouble('betrag1') ?? betrag1;
+    betrag2 = await SharedPreferencesHelper.loadDouble('betrag2') ?? betrag2;
+    _betrag1Controller.text = betrag1.toString();
+    _betrag2Controller.text = betrag2.toString();
     _loadAmounts();
   }
 
@@ -399,11 +410,53 @@ class _MyHomePageState extends State<MyHomePage> {
                   return ListTile(
                     title: Text(expense['description']),
                     subtitle: Text(expense['date']),
-                    trailing: Text(
-                      '${Money.fromInt((expense['amount'] * 100).toInt(), code: selectedCurrency.code)}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${Money.fromInt((expense['amount'] * 100).toInt(), code: selectedCurrency.code)}',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.red),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () {
+                            _showEditExpenseDialog(expense);
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Bestätigung'),
+                                  content: const Text(
+                                      'Möchten Sie diesen Eintrag wirklich löschen?'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('Abbrechen'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        await _dataManager
+                                            .deleteExpense(expense);
+                                        setState(() {});
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('Löschen'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -435,8 +488,15 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _onConfirmPressed() {
+  void _onConfirmPressed() async {
     _saveAmounts();
+    await SharedPreferencesHelper.saveNebenkosten(
+        'selectedBlock', selectedBlock);
+    await SharedPreferencesHelper.saveNebenkosten(
+        'selectedMonth', selectedMonth);
+    await SharedPreferencesHelper.saveInt('selectedYear', selectedYear);
+    await SharedPreferencesHelper.saveDouble('betrag1', betrag1);
+    await SharedPreferencesHelper.saveDouble('betrag2', betrag2);
     setState(() {
       betrag1 = 0.00;
       betrag2 = 0.00;
@@ -519,6 +579,60 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                 );
+              },
+              child: const Text('Speichern'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showEditExpenseDialog(Map<String, dynamic> expense) {
+    final TextEditingController amountController =
+        TextEditingController(text: expense['amount'].toString());
+    final TextEditingController descriptionController =
+        TextEditingController(text: expense['description']);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Ausgabe bearbeiten'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: amountController,
+                decoration: const InputDecoration(labelText: 'Betrag'),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(labelText: 'Beschreibung'),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Abbrechen'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final double? newAmount =
+                    double.tryParse(amountController.text);
+                final String newDescription = descriptionController.text;
+
+                if (newAmount != null && newDescription.isNotEmpty) {
+                  await _dataManager.updateExpense(
+                      expense, newAmount, newDescription);
+                  setState(() {});
+                  Navigator.of(context).pop();
+                }
               },
               child: const Text('Speichern'),
             ),
