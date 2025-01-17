@@ -95,15 +95,15 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(15.0),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
                         ),
                         child: DropdownButton<String>(
                           value: selectedMonth,
-                          dropdownColor: Colors.black.withOpacity(0.5),
+                          dropdownColor: Colors.black.withValues(alpha: 0.5),
                           style: const TextStyle(color: Colors.white),
                           items: months.map((String month) {
                             return DropdownMenuItem<String>(
@@ -136,15 +136,15 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(15.0),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
                         ),
                         child: DropdownButton<int>(
                           value: selectedYear,
-                          dropdownColor: Colors.black.withOpacity(0.5),
+                          dropdownColor: Colors.black.withValues(alpha: 0.5),
                           style: const TextStyle(color: Colors.white),
                           items: years.map((int year) {
                             return DropdownMenuItem<int>(
@@ -182,7 +182,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     itemBuilder: (context, index) {
                       final payment = payments[index];
                       return Card(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15.0),
                         ),
@@ -193,10 +193,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                 ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.05),
+                                color: Colors.white.withValues(alpha: 0.05),
                                 borderRadius: BorderRadius.circular(15.0),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                 ),
                               ),
                               child: ListTile(
