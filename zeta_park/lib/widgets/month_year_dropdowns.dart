@@ -7,12 +7,12 @@ class MonthYearDropdowns extends StatelessWidget {
   final ValueChanged<int?> onYearChanged;
 
   const MonthYearDropdowns({
-    Key? key,
+    super.key,
     required this.selectedMonth,
     required this.selectedYear,
     required this.onMonthChanged,
     required this.onYearChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
