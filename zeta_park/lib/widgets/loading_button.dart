@@ -77,7 +77,8 @@ class _CustomButtonState extends State<CustomButton> {
                         ..shader = LinearGradient(
                           colors: [
                             Colors.white,
-                            Colors.white.withOpacity(_isActive ? 1.0 : 0.0),
+                            Colors.white
+                                .withValues(alpha: _isActive ? 1.0 : 0.0),
                           ],
                         ).createShader(const Rect.fromLTWH(0, 0, 200, 70)),
                     ),
