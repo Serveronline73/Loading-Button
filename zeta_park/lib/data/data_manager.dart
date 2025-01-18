@@ -11,38 +11,46 @@ class DataManager {
 
   DataManager._internal();
 
-  Map<String, Map<String, Map<int, Map<String, double>>>> blockAmounts = {};
   List<Map<String, dynamic>> expenses = [];
-// Laden der Daten Ausgabenliste und Zahlungen
+  Map<String, Map<String, Map<int, Map<String, double>>>> blockAmounts = {};
+
+  // Laden der Ausgabenliste
+  Future<void> loadExpenses() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final expensesJson = prefs.getString('expenses');
+      if (expensesJson != null) {
+        expenses = List<Map<String, dynamic>>.from(
+            jsonDecode(expensesJson).map((x) => Map<String, dynamic>.from(x)));
+      }
+    } catch (e) {
+      print('Error loading expenses: $e');
+    }
+  }
+
   Future<void> loadData() async {
     await loadExpenses();
     await loadPayments();
   }
 
-// Laden der Ausgabenliste
-  Future<void> loadExpenses() async {
-    final prefs = await SharedPreferences.getInstance();
-    final expensesJson = prefs.getString('expenses');
-    if (expensesJson != null) {
-      expenses = List<Map<String, dynamic>>.from(
-          jsonDecode(expensesJson).map((x) => Map<String, dynamic>.from(x)));
-    }
-  }
-
-// Laden der Zahlungen
+  // Laden der Zahlungen
   Future<void> loadPayments() async {
-    final prefs = await SharedPreferences.getInstance();
-    final paymentsJson = prefs.getString('payments');
-    if (paymentsJson != null) {
-      final Map<String, dynamic> decoded = jsonDecode(paymentsJson);
-      blockAmounts = Map<String, Map<String, Map<int, Map<String, double>>>>.from(
-          decoded.map((key, value) => MapEntry(
-              key,
-              Map<String, Map<int, Map<String, double>>>.from(
-                  (value as Map<String, dynamic>).map((monthKey, monthValue) => MapEntry(
-                      monthKey,
-                      Map<int, Map<String, double>>.from((monthValue as Map<String, dynamic>)
-                          .map((yearKey, yearValue) => MapEntry(int.parse(yearKey), Map<String, double>.from(yearValue as Map<String, dynamic>))))))))));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final paymentsJson = prefs.getString('payments');
+      if (paymentsJson != null) {
+        final Map<String, dynamic> decoded = jsonDecode(paymentsJson);
+        blockAmounts = Map<String, Map<String, Map<int, Map<String, double>>>>.from(
+            decoded.map((key, value) => MapEntry(
+                key,
+                Map<String, Map<int, Map<String, double>>>.from(
+                    (value as Map<String, dynamic>).map((monthKey, monthValue) => MapEntry(
+                        monthKey,
+                        Map<int, Map<String, double>>.from((monthValue as Map<String, dynamic>)
+                            .map((yearKey, yearValue) => MapEntry(int.parse(yearKey), Map<String, double>.from(yearValue as Map<String, dynamic>))))))))));
+      }
+    } catch (e) {
+      print('Error loading payments: $e');
     }
   }
 
@@ -57,11 +65,15 @@ class DataManager {
       'year': year,
     });
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('expenses', jsonEncode(expenses));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('expenses', jsonEncode(expenses));
+    } catch (e) {
+      print('Error saving expense: $e');
+    }
   }
 
-// Ausgabenliste Monat und Jahr
+  // Ausgabenliste Monat und Jahr
   List<Map<String, dynamic>> getExpenses(String month, int year) {
     return expenses
         .where(
@@ -69,61 +81,69 @@ class DataManager {
         .toList();
   }
 
+  Map<String, dynamic> _serializePaymentData() {
+    final Map<String, dynamic> serialized = {};
+    blockAmounts.forEach((block, monthData) {
+      serialized[block] = {};
+      monthData.forEach((month, yearData) {
+        serialized[block][month] = {};
+        yearData.forEach((year, amounts) {
+          // Convert year to string and ensure amounts are serializable
+          serialized[block][month][year.toString()] = {
+            'aidat': amounts['aidat']?.toDouble() ?? 0.0,
+            'ek': amounts['ek']?.toDouble() ?? 0.0,
+          };
+        });
+      });
+    });
+    return serialized;
+  }
+
   Future<void> savePayment(
       String block, String month, int year, double aidat, double ek) async {
-    if (!blockAmounts.containsKey(block)) {
-      blockAmounts[block] = {};
-    }
-    if (!blockAmounts[block]!.containsKey(month)) {
-      blockAmounts[block]![month] = {};
-    }
-    blockAmounts[block]![month]![year] = {
-      'aidat': aidat,
-      'ek': ek,
-    };
+    try {
+      // Initialize nested maps safely
+      blockAmounts.putIfAbsent(block, () => {});
+      blockAmounts[block]!.putIfAbsent(month, () => {});
+      blockAmounts[block]![month]!.putIfAbsent(year, () => {});
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('payments', jsonEncode(blockAmounts));
+      // Save the payment data
+      blockAmounts[block]![month]![year] = {
+        'aidat': aidat,
+        'ek': ek,
+      };
+
+      // Serialize and save to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final serializedData = _serializePaymentData();
+      await prefs.setString('payments', jsonEncode(serializedData));
+    } catch (e) {
+      print('Fehler beim Speichern der Zahlung: $e');
+      rethrow; // Optional: rethrow to handle error in UI
+    }
   }
 
   Map<String, Map<String, Map<int, Map<String, double>>>> getBlockAmounts() {
     return blockAmounts;
   }
 
-  Map<DateTime, double> entryMap = {};
-
-  Future<void> saveEntry(DateTime date, double value) async {
-    entryMap[date] = value;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        'entries',
-        jsonEncode(entryMap
-            .map((key, value) => MapEntry(key.toIso8601String(), value))));
-  }
-
-  Future<void> loadEntries() async {
-    final prefs = await SharedPreferences.getInstance();
-    final entriesJson = prefs.getString('entries');
-    if (entriesJson != null) {
-      final Map<String, dynamic> decoded = jsonDecode(entriesJson);
-      entryMap = decoded
-          .map((key, value) => MapEntry(DateTime.parse(key), value.toDouble()));
-    }
-  }
-
-  Map<DateTime, double> getEntries() {
-    return entryMap;
-  }
-
   Future<void> saveNebenkosten(String key, String value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(key, value);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(key, value);
+    } catch (e) {
+      print('Error saving additional costs: $e');
+    }
   }
 
   Future<void> deleteExpense(Map<String, dynamic> expense) async {
     expenses.remove(expense);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('expenses', jsonEncode(expenses));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('expenses', jsonEncode(expenses));
+    } catch (e) {
+      print('Error deleting expense: $e');
+    }
   }
 
   Future<void> updateExpense(Map<String, dynamic> expense, double newAmount,
@@ -132,8 +152,12 @@ class DataManager {
     if (index != -1) {
       expenses[index]['amount'] = newAmount;
       expenses[index]['description'] = newDescription;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('expenses', jsonEncode(expenses));
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('expenses', jsonEncode(expenses));
+      } catch (e) {
+        print('Error updating expense: $e');
+      }
     }
   }
 }
