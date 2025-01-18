@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/data/data_manager.dart';
+import 'package:flutter_application_1/repository/data_manager.dart';
 import 'package:flutter_application_1/repository/sharedPreferences.dart';
 import 'package:flutter_application_1/screens/item_detail_screen.dart';
 import 'package:flutter_application_1/widgets/custom_card.dart';
