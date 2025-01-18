@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
     const bool isLoggedIn =
-        true; // Vorübergehend auf true gesetzt, bis die Authentifizierung implementiert ist danach wieder auf false setzen
+        true; // Vorübergehend auf false gesetzt, bis die Authentifizierung implementiert ist danach wieder auf true setzen
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
