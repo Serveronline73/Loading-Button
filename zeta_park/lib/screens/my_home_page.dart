@@ -38,14 +38,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _loadInitialData() async {
     await _dataManager.loadData();
-    selectedBlock = await SharedPreferencesHelper.loadString('selectedBlock') ??
+    selectedBlock = await SharedPreferencesHelper.loadBlock('selectedBlock') ??
         selectedBlock;
-    selectedMonth = await SharedPreferencesHelper.loadString('selectedMonth') ??
+    selectedMonth = await SharedPreferencesHelper.loadBlock('selectedMonth') ??
         selectedMonth;
     selectedYear =
-        await SharedPreferencesHelper.loadInt('selectedYear') ?? selectedYear;
-    betrag1 = await SharedPreferencesHelper.loadDouble('betrag1') ?? betrag1;
-    betrag2 = await SharedPreferencesHelper.loadDouble('betrag2') ?? betrag2;
+        await SharedPreferencesHelper.loadYear('selectedYear') ?? selectedYear;
+    betrag1 = await SharedPreferencesHelper.loadBetrag('betrag1') ?? betrag1;
+    betrag2 = await SharedPreferencesHelper.loadBetrag('betrag2') ?? betrag2;
     _betrag1Controller.text = betrag1.toString();
     _betrag2Controller.text = betrag2.toString();
     _loadAmounts();
@@ -119,6 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
           selectedBlock = newValue!;
           _loadAmounts();
         });
+        SharedPreferencesHelper.saveNebenkosten('selectedBlock', selectedBlock);
       },
       isExpanded: true,
     );
@@ -155,6 +156,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 selectedMonth = newValue!;
                 _loadAmounts();
               });
+              SharedPreferencesHelper.saveNebenkosten(
+                  'selectedMonth', selectedMonth);
             },
             isExpanded: true,
           ),
@@ -174,6 +177,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 selectedYear = newValue!;
                 _loadAmounts();
               });
+              SharedPreferencesHelper.saveYear('selectedYear', selectedYear);
             },
             isExpanded: true,
           ),
@@ -213,7 +217,7 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            _buildPaymentFields(),
+            paymentFieldsNK(),
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: _onConfirmPressed,
@@ -235,14 +239,14 @@ class _MyHomePageState extends State<MyHomePage> {
             // const Text('Visa\n**** **** **** 4243'),
             // Divider(thickness: 1, color: Colors.grey[300]),
             // const SizedBox(height: 8.0),
-            _buildPaymentSummary(),
+            paymentNK(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPaymentFields() {
+  Widget paymentFieldsNK() {
     return Row(
       children: [
         Expanded(
@@ -276,7 +280,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _buildPaymentSummary() {
+  Widget paymentNK() {
     final monthlyTotal = getMonthlyTotal();
     return Column(
       children: [
@@ -343,6 +347,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 setState(() {
                   ausgabe = double.tryParse(value) ?? 0.00;
                 });
+                SharedPreferencesHelper.saveBetrag('ausgabe', ausgabe);
               },
             ),
             const SizedBox(height: 16.0),
@@ -358,6 +363,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 setState(() {
                   ausgabeDescription = value;
                 });
+                SharedPreferencesHelper.saveNebenkosten(
+                    'ausgabeDescription', ausgabeDescription);
               },
             ),
             const SizedBox(height: 16.0),
@@ -378,6 +385,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     _ausgabeController.clear();
                     _ausgabeDescriptionController.clear();
                   });
+                  SharedPreferencesHelper.saveBetrag('ausgabe', ausgabe);
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -410,53 +418,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   return ListTile(
                     title: Text(expense['description']),
                     subtitle: Text(expense['date']),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${Money.fromInt((expense['amount'] * 100).toInt(), code: selectedCurrency.code)}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, color: Colors.red),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            _showEditExpenseDialog(expense);
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('Bestätigung'),
-                                  content: const Text(
-                                      'Möchten Sie diesen Eintrag wirklich löschen?'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text('Abbrechen'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () async {
-                                        await _dataManager
-                                            .deleteExpense(expense);
-                                        setState(() {});
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text('Löschen'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ],
+                    trailing: Text(
+                      '${Money.fromInt((expense['amount'] * 100).toInt(), code: selectedCurrency.code)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   );
                 },
@@ -494,9 +460,9 @@ class _MyHomePageState extends State<MyHomePage> {
         'selectedBlock', selectedBlock);
     await SharedPreferencesHelper.saveNebenkosten(
         'selectedMonth', selectedMonth);
-    await SharedPreferencesHelper.saveInt('selectedYear', selectedYear);
-    await SharedPreferencesHelper.saveDouble('betrag1', betrag1);
-    await SharedPreferencesHelper.saveDouble('betrag2', betrag2);
+    await SharedPreferencesHelper.saveYear('selectedYear', selectedYear);
+    await SharedPreferencesHelper.saveBetrag('betrag1', betrag1);
+    await SharedPreferencesHelper.saveBetrag('betrag2', betrag2);
     setState(() {
       betrag1 = 0.00;
       betrag2 = 0.00;
@@ -510,12 +476,14 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       betrag1 = double.tryParse(value) ?? 0.00;
     });
+    SharedPreferencesHelper.saveBetrag('betrag1', betrag1);
   }
 
   void _updateBetrag2(String value) {
     setState(() {
       betrag2 = double.tryParse(value) ?? 0.00;
     });
+    SharedPreferencesHelper.saveBetrag('betrag2', betrag2);
   }
 
   void _saveAmounts() {
@@ -542,6 +510,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _betrag1Controller.text = betrag1.toString();
         _betrag2Controller.text = betrag2.toString();
       });
+      SharedPreferencesHelper.saveBetrag('betrag1', betrag1);
     } else {
       setState(() {
         betrag1 = 0.00;
@@ -549,6 +518,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _betrag1Controller.clear();
         _betrag2Controller.clear();
       });
+      SharedPreferencesHelper.saveBetrag('betrag1', betrag1);
     }
   }
 
@@ -579,60 +549,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                 );
-              },
-              child: const Text('Speichern'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showEditExpenseDialog(Map<String, dynamic> expense) {
-    final TextEditingController amountController =
-        TextEditingController(text: expense['amount'].toString());
-    final TextEditingController descriptionController =
-        TextEditingController(text: expense['description']);
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Ausgabe bearbeiten'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: amountController,
-                decoration: const InputDecoration(labelText: 'Betrag'),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16.0),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(labelText: 'Beschreibung'),
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Abbrechen'),
-            ),
-            TextButton(
-              onPressed: () async {
-                final double? newAmount =
-                    double.tryParse(amountController.text);
-                final String newDescription = descriptionController.text;
-
-                if (newAmount != null && newDescription.isNotEmpty) {
-                  await _dataManager.updateExpense(
-                      expense, newAmount, newDescription);
-                  setState(() {});
-                  Navigator.of(context).pop();
-                }
               },
               child: const Text('Speichern'),
             ),
