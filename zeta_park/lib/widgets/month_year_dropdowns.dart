@@ -70,6 +70,6 @@ class MonthYearDropdowns extends StatelessWidget {
   }
 
   List<int> _generateYears() {
-    return List.generate(10, (index) => 2024 + index);
+    return List.generate(10, (index) => 2025 + index);
   }
 }
