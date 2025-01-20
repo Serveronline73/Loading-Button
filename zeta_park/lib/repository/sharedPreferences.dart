@@ -12,16 +12,6 @@ class SharedPreferencesHelper {
     return prefs.getString(key);
   }
 
-  // static Future<void> saveBool(String key, bool value) async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   await prefs.setBool(key, value);
-  // }
-
-  // static Future<bool?> loadBool(String key) async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   return prefs.getBool(key);
-  // }
-
   static Future<void> saveYear(String key, int value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(key, value);
