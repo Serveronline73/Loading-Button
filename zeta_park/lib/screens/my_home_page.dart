@@ -5,6 +5,7 @@ import 'package:flutter_application_1/screens/item_detail_screen.dart';
 import 'package:flutter_application_1/widgets/custom_card.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:money2/money2.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -39,17 +40,21 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _loadInitialData() async {
     await _dataManager.loadData();
-    selectedBlock = await SharedPreferencesHelper.loadBlock('selectedBlock') ??
-        selectedBlock;
-    selectedMonth = await SharedPreferencesHelper.loadBlock('selectedMonth') ??
-        selectedMonth;
-    selectedYear =
-        await SharedPreferencesHelper.loadYear('selectedYear') ?? selectedYear;
-    betrag1 = await SharedPreferencesHelper.loadBetrag('betrag1') ?? betrag1;
-    betrag2 = await SharedPreferencesHelper.loadBetrag('betrag2') ?? betrag2;
-    _betrag1Controller.text = betrag1.toString();
-    _betrag2Controller.text = betrag2.toString();
-    _loadAmounts();
+    setState(() async {
+      selectedBlock =
+          await SharedPreferencesHelper.loadBlock('selectedBlock') ??
+              selectedBlock;
+      selectedMonth =
+          await SharedPreferencesHelper.loadBlock('selectedMonth') ??
+              selectedMonth;
+      selectedYear = await SharedPreferencesHelper.loadYear('selectedYear') ??
+          selectedYear;
+      betrag1 = await SharedPreferencesHelper.loadBetrag('betrag1') ?? betrag1;
+      betrag2 = await SharedPreferencesHelper.loadBetrag('betrag2') ?? betrag2;
+      _betrag1Controller.text = betrag1.toString();
+      _betrag2Controller.text = betrag2.toString();
+      _loadAmounts();
+    });
   }
 
   double getMonthlyTotal() {
@@ -77,7 +82,20 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black45, // Hintergrundfarbe
+      backgroundColor: Colors.black, // Einheitliche Hintergrundfarbe
+      appBar: AppBar(
+        backgroundColor: Colors.black, // Einheitliche AppBar-Farbe
+        title: const Text(
+          'Zeta Park',
+          style: TextStyle(color: Colors.white), // Textfarbe der AppBar
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () => _logout(context),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Theme(
           data: Theme.of(context).copyWith(
@@ -85,21 +103,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   bodyColor: Colors.white,
                   displayColor: Colors.white,
                 ),
-            cardTheme: CardTheme(
-              color: Colors.grey[900], // Hintergrundfarbe der Karten Container
+            cardTheme: const CardTheme(
+              color: Colors.black, // Hintergrundfarbe der Karten Container
             ),
           ),
           child: Container(
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  spreadRadius: 5,
-                  blurRadius: 7,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
+            color: Colors.black, // Einheitliche Hintergrundfarbe
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return SingleChildScrollView(
@@ -177,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Expanded(
           child: DropdownButton<String>(
             value: selectedMonth,
-            dropdownColor: Colors.black, // hintergrundfarbe des Dropdown-Menüs
+            dropdownColor: Colors.black, // Hintergrundfarbe des Dropdown-Menüs
             style: const TextStyle(
                 color: Colors.white), // Textfarbe der Dropdown-Menüs
             items: months.map((String month) {
@@ -205,7 +214,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Expanded(
           child: DropdownButton<int>(
             value: selectedYear,
-            dropdownColor: Colors.black, // hintergrundfarbe des Dropdown-Menüs
+            dropdownColor: Colors.black, // Hintergrundfarbe des Dropdown-Menüs
             style: const TextStyle(
                 color: Colors.white), // Textfarbe der Dropdown-Menüs
             items: years.map((int year) {
@@ -856,6 +865,12 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
+  }
+
+  void _logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   void _showDeleteConfirmation(Map<String, dynamic> expense) {
