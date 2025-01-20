@@ -1,8 +1,55 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/notifiers/login_notifier.dart'; // Import LoginNotifier
+import 'package:flutter_application_1/screens/my_home_page.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _codeController = TextEditingController();
+  bool _isCodeSent = false;
+  final String _fixedValidationCode = '123456';
+
+  final List<String> validEmailDomains = [
+    '.com',
+    '.de',
+    '.com.tr',
+    '.yahoo',
+    '.gmail',
+    '.gmx',
+    '.yandex',
+    '.yaani',
+    '.yahoo.de'
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(_updateRequestCodeButtonState);
+  }
+
+  void _updateRequestCodeButtonState() {
+    setState(() {});
+  }
+
+  bool _isValidEmail(String email) {
+    if (email.contains('@')) {
+      for (var domain in validEmailDomains) {
+        if (email.endsWith(domain)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,35 +65,43 @@ class LoginScreen extends StatelessWidget {
               const SizedBox(height: 24),
               _buildHeaderText(),
               const SizedBox(height: 32),
-              _buildLoginButton(
-                context,
-                'Continue with Apple',
-                Icons.apple,
-                Colors.white,
-                () => _handleLogin(context, 'Apple'),
-              ),
+              // _buildLoginButton(
+              //   context,
+              //   'Continue with Apple',
+              //   Icons.apple,
+              //   Colors.white,
+              //   () => print('Apple login pressed'),
+              // ),
               const SizedBox(height: 12),
               _buildLoginButton(
                 context,
                 'Continue with Google',
                 Icons.g_mobiledata,
                 Colors.black,
-                () => _handleLogin(context, 'Google'),
+                () => print('Google login pressed'),
                 backgroundColor: Colors.white,
                 textColor: Colors.black,
                 borderColor: Colors.grey[300],
               ),
               const SizedBox(height: 12),
-              _buildLoginButton(
-                context,
-                'Continue with Email',
-                Icons.email_outlined,
-                Colors.black,
-                () => _handleLogin(context, 'Email'),
-                backgroundColor: Colors.white,
-                textColor: Colors.black,
-                borderColor: Colors.grey[300],
-              ),
+              if (!_isCodeSent) ...[
+                _buildEmailInput(),
+                const SizedBox(height: 12),
+                _buildRequestCodeButton(),
+              ] else ...[
+                _buildCodeInput(),
+                const SizedBox(height: 12),
+                _buildLoginButton(
+                  context,
+                  'Login',
+                  Icons.login,
+                  Colors.black,
+                  () => _handleLogin(context, 'Email'),
+                  backgroundColor: Colors.white,
+                  textColor: Colors.black,
+                  borderColor: Colors.grey[300],
+                ),
+              ],
               const SizedBox(height: 16),
               const SizedBox(height: 24),
               _buildTermsText(context),
@@ -79,8 +134,8 @@ class LoginScreen extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.white.withValues(alpha: 0.01),
-                Colors.black.withValues(alpha: 0.5),
+                Colors.white.withAlpha(25),
+                Colors.black.withAlpha(128),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
@@ -155,16 +210,14 @@ class LoginScreen extends StatelessWidget {
             text: 'Terms of Service',
             style: const TextStyle(
                 color: Colors.blue, fontWeight: FontWeight.bold),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {/* Navigate to Terms */},
+            recognizer: TapGestureRecognizer()..onTap = () {},
           ),
           const TextSpan(text: ' and '),
           TextSpan(
             text: 'Privacy Policy',
             style: const TextStyle(
                 color: Colors.blue, fontWeight: FontWeight.bold),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {/* Navigate to Privacy Policy */},
+            recognizer: TapGestureRecognizer()..onTap = () {},
           ),
         ],
       ),
@@ -172,8 +225,92 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  void _handleLogin(BuildContext context, String method) {
-    // Add login logic here
-    print('Logging in with $method');
+  Widget _buildEmailInput() {
+    return TextField(
+      controller: _emailController,
+      decoration: InputDecoration(
+        labelText: 'Bitte Email eingeben',
+        prefixIcon: const Icon(Icons.email),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCodeInput() {
+    return TextField(
+      controller: _codeController,
+      decoration: InputDecoration(
+        labelText: 'Validation Code',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRequestCodeButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: ElevatedButton(
+        onPressed: _isValidEmail(_emailController.text)
+            ? _requestValidationCode
+            : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: const Text(
+          'Request Validation Code',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _requestValidationCode() {
+    // Simulate sending the fixed validation code to the email
+    print(
+        'Sending validation code $_fixedValidationCode to ${_emailController.text}');
+    setState(() {
+      _isCodeSent = true;
+    });
+  }
+
+  void _handleLogin(BuildContext context, String method) async {
+    if (method == 'Email') {
+      final email = _emailController.text;
+      final code = _codeController.text;
+      if (code == _fixedValidationCode) {
+        // Add login logic here
+        print('Logging in with $email');
+        Provider.of<LoginNotifier>(context, listen: false).login();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MyHomePage()),
+        );
+      } else {
+        // Show error message
+        print('Invalid validation code');
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.removeListener(_updateRequestCodeButtonState);
+    _emailController.dispose();
+    _codeController.dispose();
+    super.dispose();
   }
 }
