@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/role.dart';
 import '../screens/new_screen.dart';
 
 class CustomCard extends StatelessWidget {
@@ -57,25 +59,27 @@ class CustomCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => NewScreen()),
-                          );
-                        },
-                        child: _buildButton(
-                          color: const Color(0xFF488AEC),
-                          shadowColor: const Color(0xFF488AEC)
-                              .withAlpha((0.19 * 255).toInt()),
-                          textColor: Colors.white,
-                          iconColor: Colors.white,
-                          text: "Site Sakini",
-                          subText: "Aylik Görüntüler",
+                      if (context.watch<RoleManager>().admin)
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => NewScreen()),
+                            );
+                          },
+                          child: _buildButton(
+                            color: const Color(0xFF488AEC),
+                            shadowColor: const Color(0xFF488AEC)
+                                .withAlpha((0.19 * 255).toInt()),
+                            textColor: Colors.white,
+                            iconColor: Colors.white,
+                            text: "Site Sakini",
+                            subText: "Aylik Görüntüler",
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
+                      if (context.watch<RoleManager>().admin)
+                        const SizedBox(width: 10),
                       _buildButton(
                         color: Colors.white,
                         shadowColor: const Color(0xFF0B1625)
