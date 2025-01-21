@@ -149,30 +149,33 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _buildBlockDropdown() {
     final List<String> blocks = _generateBlocks();
 
-    return DropdownButton<String>(
-      value: selectedBlock,
-      dropdownColor: Colors.black, // Hintergrundfarbe des Dropdown-Menüs
-      style:
-          const TextStyle(color: Colors.white), // Textfarbe der Dropdown-Menüs
-      items: blocks.map((String block) {
-        return DropdownMenuItem<String>(
-          value: block,
-          child: Text(
-            block,
+    return context.watch<RoleManager>().admin
+        ? DropdownButton<String>(
+            value: selectedBlock,
+            dropdownColor: Colors.black, // Hintergrundfarbe des Dropdown-Menüs
             style: const TextStyle(
                 color: Colors.white), // Textfarbe der Dropdown-Menüs
-          ),
-        );
-      }).toList(),
-      onChanged: (String? newValue) {
-        setState(() {
-          selectedBlock = newValue!;
-          _loadAmounts();
-        });
-        SharedPreferencesHelper.saveNebenkosten('selectedBlock', selectedBlock);
-      },
-      isExpanded: true,
-    );
+            items: blocks.map((String block) {
+              return DropdownMenuItem<String>(
+                value: block,
+                child: Text(
+                  block,
+                  style: const TextStyle(
+                      color: Colors.white), // Textfarbe der Dropdown-Menüs
+                ),
+              );
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() {
+                selectedBlock = newValue!;
+                _loadAmounts();
+              });
+              SharedPreferencesHelper.saveNebenkosten(
+                  'selectedBlock', selectedBlock);
+            },
+            isExpanded: true,
+          )
+        : const SizedBox();
   }
 
   List<String> _generateBlocks() {
@@ -478,86 +481,84 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           const SizedBox(height: 16.0),
-          TextField(
-            controller: _ausgabeController,
-            decoration: InputDecoration(
-              labelText: 'Ausgabenbetrag',
-              labelStyle: const TextStyle(
-                color: Colors.white,
-              ),
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-            keyboardType: TextInputType.number,
-            onChanged: (value) {
-              setState(() {
-                ausgabe = double.tryParse(value) ?? 0.00;
-              });
-              SharedPreferencesHelper.saveBetrag('ausgabe',
-                  ausgabe); // Ausgabenbetrag speichern in SharedPreferences
-            },
-          ),
-          const SizedBox(height: 16.0),
-          TextField(
-            controller: _ausgabeDescriptionController,
-            decoration: InputDecoration(
-              labelText: 'Beschreibung',
-              labelStyle: const TextStyle(
-                color: Colors.white,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-            onChanged: (value) {
-              setState(() {
-                ausgabeDescription = value;
-              });
-              SharedPreferencesHelper.saveNebenkosten(
-                  // Beschreibung speichern in SharedPreferences
-                  'ausgabeDescription',
-                  ausgabeDescription); // Beschreibung der Ausgabe speichern in SharedPreferences
-            },
-          ),
-          const SizedBox(height: 16.0),
-          ElevatedButton(
-            onPressed: () async {
-              if (ausgabe > 0 && ausgabeDescription.isNotEmpty) {
-                // Wenn Ausgabenbetrag und Beschreibung vorhanden sind
-                final now = DateTime.now(); // Aktuelles Datum und Uhrzeit
-                await _dataManager.saveExpense(
-                  // Ausgabe speichern in Datenbank
-                  ausgabe,
-                  ausgabeDescription,
-                  '${now.day}.${now.month}.${now.year}', // Datum der Ausgabe speichern
-                  selectedMonth,
-                  selectedYear,
-                );
-                setState(() {
-                  ausgabe = 0.00; // Nach Speichern zurücksetzen
-                  ausgabeDescription = ''; // Nach Speichern zurücksetzen
-                  _ausgabeController.clear(); // Felder leeren
-                  _ausgabeDescriptionController.clear(); // Felder leeren
-                });
-                SharedPreferencesHelper.saveBetrag('ausgabe',
-                    ausgabe); // Ausgabenbetrag speichern in SharedPreferences
-                if (mounted) {
-                  // Wenn die App aktiv ist
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    // Snackbar anzeigen
-                    const SnackBar(
-                      content: Text('Ausgabe wurde gespeichert'),
+          context.watch<RoleManager>().admin
+              ? Column(
+                  children: [
+                    TextField(
+                      controller: _ausgabeController,
+                      decoration: InputDecoration(
+                        labelText: 'Ausgabenbetrag',
+                        labelStyle: const TextStyle(
+                          color: Colors.white,
+                        ),
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        setState(() {
+                          ausgabe = double.tryParse(value) ?? 0.00;
+                        });
+                        SharedPreferencesHelper.saveBetrag('ausgabe', ausgabe);
+                      },
                     ),
-                  );
-                }
-              }
-            },
-            child: const Text('Ausgabe speichern'), // Text des Buttons
-          ),
+                    const SizedBox(height: 16.0),
+                    TextField(
+                      controller: _ausgabeDescriptionController,
+                      decoration: InputDecoration(
+                        labelText: 'Beschreibung',
+                        labelStyle: const TextStyle(
+                          color: Colors.white,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          ausgabeDescription = value;
+                        });
+                        SharedPreferencesHelper.saveNebenkosten(
+                            'ausgabeDescription', ausgabeDescription);
+                      },
+                    ),
+                    const SizedBox(height: 16.0),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (ausgabe > 0 && ausgabeDescription.isNotEmpty) {
+                          final now = DateTime.now();
+                          await _dataManager.saveExpense(
+                            ausgabe,
+                            ausgabeDescription,
+                            '${now.day}.${now.month}.${now.year}',
+                            selectedMonth,
+                            selectedYear,
+                          );
+                          setState(() {
+                            ausgabe = 0.00;
+                            ausgabeDescription = '';
+                            _ausgabeController.clear();
+                            _ausgabeDescriptionController.clear();
+                          });
+                          SharedPreferencesHelper.saveBetrag(
+                              'ausgabe', ausgabe);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Ausgabe wurde gespeichert'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: const Text('Ausgabe speichern'),
+                    ),
+                  ],
+                )
+              : const SizedBox(),
           if (expenses.isNotEmpty) ...[
-            // Wenn Ausgaben vorhanden sind
             const SizedBox(height: 8.0),
             const Divider(
               thickness: 1,
