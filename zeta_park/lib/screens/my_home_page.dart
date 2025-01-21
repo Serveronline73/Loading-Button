@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/providers/role.dart';
 import 'package:flutter_application_1/repository/data_manager.dart';
 import 'package:flutter_application_1/repository/sharedPreferences.dart';
 import 'package:flutter_application_1/screens/item_detail_screen.dart';
 import 'package:flutter_application_1/widgets/custom_card.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:money2/money2.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -89,6 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
           'Zeta Park',
           style: TextStyle(color: Colors.white), // Textfarbe der AppBar
         ),
+        // AppBar-Icon zum Ausloggen
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
@@ -116,6 +119,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     padding: const EdgeInsets.all(21.0),
                     child: Column(
                       children: [
+                        Text(
+                          context.watch<RoleManager>().admin
+                              ? "Admin"
+                              : "Normaler User",
+                          style: const TextStyle(color: Colors.white),
+                        ),
                         const CustomCard(),
                         const SizedBox(height: 16.0),
                         _buildBlockDropdown(),
@@ -286,22 +295,30 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       padding: const EdgeInsets.all(20),
+      // Zeile 300 bis 313 sorgt dafür das die Eingabefelder für den Nutzer deaktiviert wird
+
       child: Column(
         children: [
-          paymentFieldsNK(),
-          const SizedBox(height: 16.0),
-          ElevatedButton(
-            // Bestätigen Button
-            onPressed: _onConfirmPressed,
-            child: const Text('Bestätigen'),
-          ),
+          context.watch<RoleManager>().admin
+              ? Column(
+                  children: [
+                    paymentFieldsNK(),
+                    const SizedBox(height: 16.0),
+                    ElevatedButton(
+                      // Bestätigen Button
+                      onPressed: _onConfirmPressed,
+                      child: const Text('Bestätigen'),
+                    )
+                  ],
+                )
+              : const SizedBox(),
           const SizedBox(height: 16.0),
           const Text(
             'Site Yönetimi: Fatih Sevindik',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
-              color: Color(0xFF488AEC),
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 8.0),
@@ -312,7 +329,7 @@ class _MyHomePageState extends State<MyHomePage> {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
-              color: Color(0xFF488AEC),
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 8.0),
@@ -466,7 +483,7 @@ class _MyHomePageState extends State<MyHomePage> {
             decoration: InputDecoration(
               labelText: 'Ausgabenbetrag',
               labelStyle: const TextStyle(
-                color: Color(0xFF488AEC),
+                color: Colors.white,
               ),
               fillColor: Colors.white,
               border: OutlineInputBorder(
@@ -488,7 +505,7 @@ class _MyHomePageState extends State<MyHomePage> {
             decoration: InputDecoration(
               labelText: 'Beschreibung',
               labelStyle: const TextStyle(
-                color: Color(0xFF488AEC),
+                color: Colors.white,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.0),
@@ -831,7 +848,8 @@ class _MyHomePageState extends State<MyHomePage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context), // Dialog schließen
-              child: const Text('Abbrechen'),
+              child: const Text('Abbrechen',
+                  style: TextStyle(color: Colors.white)),
             ),
             TextButton(
               onPressed: () async {
@@ -859,7 +877,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   }
                 }
               },
-              child: const Text('Speichern'),
+              child: const Text(
+                'Speichern',
+                style: TextStyle(color: Colors.green),
+              ),
             ),
           ],
         );
@@ -887,7 +908,8 @@ class _MyHomePageState extends State<MyHomePage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context), // Dialog schließen
-              child: const Text('Abbrechen'),
+              child: const Text('Abbrechen',
+                  style: TextStyle(color: Colors.white)),
             ),
             TextButton(
               onPressed: () async {
