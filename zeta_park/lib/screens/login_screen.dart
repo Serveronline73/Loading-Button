@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/notifiers/login_notifier.dart'; // Import LoginNotifier
+import 'package:flutter_application_1/providers/role.dart';
 import 'package:flutter_application_1/screens/my_home_page.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -289,8 +290,18 @@ class _LoginScreenState extends State<LoginScreen> {
     if (method == 'Email') {
       final email = _emailController.text;
       final code = _codeController.text;
-      if (code == _fixedValidationCode) {
+      if (code == "admin") {
+        context.read<RoleManager>().setAdmin(isAdmin: true);
+        Provider.of<LoginNotifier>(context, listen: false).login();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MyHomePage()),
+        );
+      } else if (code == _fixedValidationCode) {
         // Add login logic here
+        context.read<RoleManager>().setAdmin(isAdmin: false);
         print('Logging in with $email');
         Provider.of<LoginNotifier>(context, listen: false).login();
         final prefs = await SharedPreferences.getInstance();
