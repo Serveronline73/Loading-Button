@@ -107,7 +107,7 @@ class DataManager {
       blockAmounts[block]!.putIfAbsent(month, () => {});
       blockAmounts[block]![month]!.putIfAbsent(year, () => {});
 
-      // Save the payment data
+      // Save the payment
       blockAmounts[block]![month]![year] = {
         'aidat': aidat,
         'ek': ek,
