@@ -592,31 +592,33 @@ class _MyHomePageState extends State<MyHomePage> {
                 final expense = expenses[index ~/ 2]; // Ausgabenindex
                 return Slidable(
                   // Ausgaben mit Slidable-Widget anzeigen
-                  endActionPane: ActionPane(
-                    motion: const ScrollMotion(),
-                    children: [
-                      SlidableAction(
-                        onPressed: (context) {
-                          _showEditDialog(
-                              expense); // Dialog für Bearbeiten öffnen
-                        },
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        icon: Icons.edit,
-                        label: 'Bearbeiten',
-                      ),
-                      SlidableAction(
-                        onPressed: (context) {
-                          _showDeleteConfirmation(
-                              expense); // Dialog für Löschen öffnen
-                        },
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        icon: Icons.delete,
-                        label: 'Löschen',
-                      ),
-                    ],
-                  ),
+                  endActionPane: context.watch<RoleManager>().admin
+                      ? ActionPane(
+                          motion: const ScrollMotion(),
+                          children: [
+                            SlidableAction(
+                              onPressed: (context) {
+                                _showEditDialog(
+                                    expense); // Dialog für Bearbeiten öffnen
+                              },
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              icon: Icons.edit,
+                              label: 'Bearbeiten',
+                            ),
+                            SlidableAction(
+                              onPressed: (context) {
+                                _showDeleteConfirmation(
+                                    expense); // Dialog für Löschen öffnen
+                              },
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              icon: Icons.delete,
+                              label: 'Löschen',
+                            ),
+                          ],
+                        )
+                      : null,
                   child: ListTile(
                     dense: true,
                     visualDensity: VisualDensity.compact,
