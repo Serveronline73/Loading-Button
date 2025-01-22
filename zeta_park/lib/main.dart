@@ -1,8 +1,11 @@
 // Importieren der notwendigen Pakete
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_application_1/app.dart';
 import 'package:flutter_application_1/providers/role.dart';
+import 'package:flutter_application_1/repository/data_manager.dart';
+import 'package:flutter_application_1/screens/login_screen.dart';
+import 'package:flutter_application_1/screens/my_home_page.dart';
+import 'package:flutter_application_1/screens/statistics_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -32,9 +35,21 @@ void main() async {
         ChangeNotifierProvider(
           create: (context) => ThemeNotifier(isDarkMode),
         ),
-        ChangeNotifierProvider(create: (context) => RoleManager())
+        ChangeNotifierProvider(create: (context) => RoleManager()),
+        Provider(create: (context) => DataManager()),
       ],
-      child: const MyApp(),
+      child: MaterialApp(
+        title: 'Zeta Park',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: const LoginScreen(),
+        routes: {
+          '/login': (context) => const LoginScreen(),
+          '/home': (context) => const MyHomePage(),
+          '/statistics': (context) => const StatisticsScreen(),
+        },
+      ),
     ),
   );
 }
