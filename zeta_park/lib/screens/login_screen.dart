@@ -14,7 +14,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _userEmailController = TextEditingController();
+  final TextEditingController _adminEmailController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
   bool _isCodeSent = false;
   final String _fixedValidationCode = '123456';
@@ -34,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _emailController.addListener(_updateRequestCodeButtonState);
+    _userEmailController.addListener(_updateRequestCodeButtonState);
   }
 
   void _updateRequestCodeButtonState() {
@@ -65,24 +66,15 @@ class _LoginScreenState extends State<LoginScreen> {
               _buildLogoContainer(),
               const SizedBox(height: 24),
               _buildHeaderText(),
-              const SizedBox(height: 32),
-              // _buildLoginButton(
-              //   context,
-              //   'Continue with Apple',
-              //   Icons.apple,
-              //   Colors.white,
-              //   () => print('Apple login pressed'),
-              // ),
+              //const SizedBox(height: 32),
               const SizedBox(height: 12),
-              _buildLoginButton(
-                context,
-                'Continue with Google',
-                Icons.g_mobiledata,
-                Colors.black,
-                () => print('Google login pressed'),
-                backgroundColor: Colors.white,
-                textColor: Colors.black,
-                borderColor: Colors.grey[300],
+              const Text(
+                'User Login',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
               const SizedBox(height: 12),
               if (!_isCodeSent) ...[
@@ -104,6 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ],
               const SizedBox(height: 16),
+              _buildAdminLoginSection(),
               const SizedBox(height: 24),
               _buildTermsText(context),
             ],
@@ -228,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildEmailInput() {
     return TextField(
-      controller: _emailController,
+      controller: _userEmailController,
       decoration: InputDecoration(
         labelText: 'Bitte Email eingeben',
         prefixIcon: const Icon(Icons.email),
@@ -256,7 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
       width: double.infinity,
       height: 48,
       child: ElevatedButton(
-        onPressed: _isValidEmail(_emailController.text)
+        onPressed: _isValidEmail(_userEmailController.text)
             ? _requestValidationCode
             : null,
         style: ElevatedButton.styleFrom(
@@ -280,29 +273,67 @@ class _LoginScreenState extends State<LoginScreen> {
   void _requestValidationCode() {
     // Simulate sending the fixed validation code to the email
     print(
-        'Sending validation code $_fixedValidationCode to ${_emailController.text}');
+        'Sending validation code $_fixedValidationCode to ${_userEmailController.text}');
     setState(() {
       _isCodeSent = true;
     });
   }
 
+  Widget _buildAdminLoginSection() {
+    return Column(
+      children: [
+        const Text(
+          'Admin Login',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _adminEmailController,
+          decoration: InputDecoration(
+            labelText: 'Admin Email eingeben',
+            prefixIcon: const Icon(Icons.email),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _codeController,
+          decoration: InputDecoration(
+            labelText: 'Admin Passwort',
+            prefixIcon: const Icon(Icons.lock),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          obscureText: true,
+        ),
+        const SizedBox(height: 12),
+        _buildLoginButton(
+          context,
+          'Admin Login',
+          Icons.login,
+          Colors.black,
+          () => _handleLogin(context, 'Admin'),
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+          borderColor: Colors.grey[300],
+        ),
+      ],
+    );
+  }
+
   void _handleLogin(BuildContext context, String method) async {
     if (method == 'Email') {
-      final email = _emailController.text;
+      final email = _userEmailController.text;
       final code = _codeController.text;
-      if (code == "admin") {
-        context.read<RoleManager>().setAdmin(isAdmin: true);
-        Provider.of<LoginNotifier>(context, listen: false).login();
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('isLoggedIn', true);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MyHomePage()),
-        );
-      } else if (code == _fixedValidationCode) {
-        // Add login logic here
+      if (code == _fixedValidationCode) {
         context.read<RoleManager>().setAdmin(isAdmin: false);
-        print('Logging in with $email');
         Provider.of<LoginNotifier>(context, listen: false).login();
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
@@ -314,13 +345,30 @@ class _LoginScreenState extends State<LoginScreen> {
         // Show error message
         print('Invalid validation code');
       }
+    } else if (method == 'Admin') {
+      final email = _adminEmailController.text;
+      final code = _codeController.text;
+      if (code == "admin") {
+        context.read<RoleManager>().setAdmin(isAdmin: true);
+        Provider.of<LoginNotifier>(context, listen: false).login();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MyHomePage()),
+        );
+      } else {
+        // Show error message
+        print('Invalid admin password');
+      }
     }
   }
 
   @override
   void dispose() {
-    _emailController.removeListener(_updateRequestCodeButtonState);
-    _emailController.dispose();
+    _userEmailController.removeListener(_updateRequestCodeButtonState);
+    _userEmailController.dispose();
+    _adminEmailController.dispose();
     _codeController.dispose();
     super.dispose();
   }
