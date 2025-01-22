@@ -271,7 +271,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _requestValidationCode() {
-    // Simulate sending the fixed validation code to the email
+    //Simulierte Validierung
     print(
         'Sending validation code $_fixedValidationCode to ${_userEmailController.text}');
     setState(() {
