@@ -23,7 +23,7 @@ class _MyHomePageState extends State<MyHomePage> {
   double ausgabe = 0.00;
   String ausgabeDescription = '';
   String selectedBlock = 'Zeta Park Blok 1/1';
-  String selectedMonth = 'Ocak';
+  String selectedMonth = 'Januar';
   int selectedYear = 2025;
   Currency selectedCurrency = Currency.create('TRY', 2, symbol: '₺');
 
@@ -255,18 +255,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<String> _generateMonths() {
     return [
-      'Ocak',
-      'Şubat',
-      'Mart',
-      'Nisan',
-      'Mayıs',
-      'Haziran',
-      'Temmuz',
-      'Ağustos',
-      'Eylül',
-      'Ekim',
-      'Kasım',
-      'Aralık'
+      "Januar",
+      "Februar",
+      "März",
+      "April",
+      "Mai",
+      "Juni",
+      "Juli",
+      "August",
+      "September",
+      "Oktober",
+      "November",
+      "Dezember",
     ];
   }
 
@@ -317,7 +317,8 @@ class _MyHomePageState extends State<MyHomePage> {
               : const SizedBox(),
           const SizedBox(height: 16.0),
           const Text(
-            'Site Yönetimi: Fatih Sevindik',
+            //'Site Yönetimi: Fatih Sevindik',
+            "Verwaltung: Fatih Sevindik",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -328,7 +329,8 @@ class _MyHomePageState extends State<MyHomePage> {
           Divider(thickness: 1, color: Colors.grey[300]),
           const SizedBox(height: 8.0),
           const Text(
-            'Banka Dekont Giris Bilgileri',
+            //'Banka Dekont Giris Bilgileri',
+            " Einzahlungsinformationen",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -351,7 +353,8 @@ class _MyHomePageState extends State<MyHomePage> {
           child: TextField(
             controller: _betrag1Controller,
             decoration: InputDecoration(
-              labelText: 'Aidat Ödemesi',
+              // labelText: 'Aidat Ödemesi',
+              labelText: "Einzahlung NK",
               labelStyle: const TextStyle(
                 color: Color(0xFF488AEC),
               ),
@@ -370,7 +373,8 @@ class _MyHomePageState extends State<MyHomePage> {
           child: TextField(
             controller: _betrag2Controller,
             decoration: InputDecoration(
-              labelText: 'Ek Ödemesi',
+              //labelText: 'Ek Ödemesi',
+              labelText: "Nachzuhlung NK",
               labelStyle: const TextStyle(
                 color: Color(0xFF488AEC),
               ),
@@ -395,7 +399,8 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Aidat Ödemesi:',
+              //'Aidat Ödemesi:',
+              "Nebenkosten Zahlungen:",
               style: TextStyle(color: Color(0xFF488AEC)),
             ),
             Text(
@@ -407,7 +412,10 @@ class _MyHomePageState extends State<MyHomePage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Ek Ödeme:', style: TextStyle(color: Color(0xFF488AEC))),
+            const Text(
+                //'Ek Ödeme:',
+                "Nebenkosten Nachzahlung:",
+                style: TextStyle(color: Color(0xFF488AEC))),
             Text(
                 '${Money.fromInt((betrag2 * 100).toInt(), code: selectedCurrency.code)}', // Betrag2 in Währung umrechnen
                 style: const TextStyle(color: Colors.white)),
@@ -418,7 +426,9 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-                'Toplam Ödeme ($selectedMonth $selectedYear):', // Gesamtbetrag für den Monat und das Jahr
+                //'Toplam Ödeme ($selectedMonth $selectedYear):',
+                // // Gesamtbetrag für den Monat und das Jahr
+                "Gesamtbetrag ($selectedMonth $selectedYear):",
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF488AEC),
@@ -790,7 +800,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     builder: (context) => ItemDetailScreen(
                       // ItemDetailScreen anzeigen
                       title: selectedBlock,
-                      subtitle: 'Aidat ödeme ve Ek Ödeme Bilgileri.',
+                      //subtitle: 'Aidat ödeme ve Ek Ödeme Bilgileri.',
+                      subtitle: 'Nebenkosten- und Nachzahlungsinformationen.',
                       blockAmounts: _dataManager
                           .getBlockAmounts(), // Datenbank-Objekt übergeben
                     ),
