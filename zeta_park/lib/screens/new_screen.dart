@@ -21,7 +21,9 @@ class NewScreen extends StatelessWidget {
         return {
           'title':
               'Zeta Park Blok 1/$blockNumber$suffix', // Blocktitel mit Blocknummer und Suffix
-          'subtitle': 'Aidat ödeme ve Ek Ödeme Bilgileri.',
+          //'subtitle': 'Aidat ödeme ve Ek Ödeme Bilgileri.',
+          'subtitle':
+              'Nebenkosten- und Nachzahlungsinformationen.', // Untertitel
         };
       },
     );
