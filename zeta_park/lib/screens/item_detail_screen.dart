@@ -21,25 +21,25 @@ class ItemDetailScreen extends StatefulWidget {
 
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
   int selectedYear = 2025;
-  String selectedMonth = 'Ocak';
+  String selectedMonth = 'Januar';
   Currency selectedCurrency = Currency.create('TRY', 2, symbol: '₺');
 
   @override
   Widget build(BuildContext context) {
     final List<int> years = List.generate(10, (index) => 2024 + index);
     final List<String> months = [
-      'Ocak',
-      'Şubat',
-      'Mart',
-      'Nisan',
-      'Mayıs',
-      'Haziran',
-      'Temmuz',
-      'Ağustos',
-      'Eylül',
-      'Ekim',
-      'Kasım',
-      'Aralık'
+      "Januar",
+      "Februar",
+      "März",
+      "April",
+      "Mai",
+      "Juni",
+      "Juli",
+      "August",
+      "September",
+      "Oktober",
+      "November",
+      "Dezember",
     ];
 
     final List<Map<String, dynamic>> payments = List.generate(
@@ -240,18 +240,18 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
   String _getMonthName(int month) {
     const List<String> monthNames = [
-      'Ocak',
-      'Şubat',
-      'Mart',
-      'Nisan',
-      'Mayıs',
-      'Haziran',
-      'Temmuz',
-      'Ağustos',
-      'Eylül',
-      'Ekim',
-      'Kasım',
-      'Aralık'
+      "Januar",
+      "Februar",
+      "März",
+      "April",
+      "Mai",
+      "Juni",
+      "Juli",
+      "August",
+      "September",
+      "Oktober",
+      "November",
+      "Dezember",
     ];
     return monthNames[month - 1];
   }
