@@ -19,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _codeController = TextEditingController();
   bool _isCodeSent = false;
   final String _fixedValidationCode = '123456';
+  String _errorMessage = '';
 
   final List<String> validEmailDomains = [
     '.com',
@@ -332,6 +333,12 @@ class _LoginScreenState extends State<LoginScreen> {
     if (method == 'Email') {
       final email = _userEmailController.text;
       final code = _codeController.text;
+      if (!_isValidEmail(email)) {
+        setState(() {
+          _errorMessage = 'Invalid email address';
+        });
+        return;
+      }
       if (code == _fixedValidationCode) {
         context.read<RoleManager>().setAdmin(isAdmin: false);
         Provider.of<LoginNotifier>(context, listen: false).login();
@@ -342,12 +349,19 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (context) => const MyHomePage()),
         );
       } else {
-        // Show error message
-        print('Invalid validation code');
+        setState(() {
+          _errorMessage = 'Invalid validation code';
+        });
       }
     } else if (method == 'Admin') {
       final email = _adminEmailController.text;
       final code = _codeController.text;
+      if (!_isValidEmail(email)) {
+        setState(() {
+          _errorMessage = 'Invalid email address';
+        });
+        return;
+      }
       if (code == "admin") {
         context.read<RoleManager>().setAdmin(isAdmin: true);
         Provider.of<LoginNotifier>(context, listen: false).login();
@@ -358,8 +372,9 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (context) => const MyHomePage()),
         );
       } else {
-        // Show error message
-        print('Invalid admin password');
+        setState(() {
+          _errorMessage = 'Invalid admin password';
+        });
       }
     }
   }
