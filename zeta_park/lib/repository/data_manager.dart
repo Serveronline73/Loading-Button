@@ -160,4 +160,43 @@ class DataManager {
       }
     }
   }
+
+  Map<int, double> getPayments(String month, int year) {
+    // Beispiel-Daten, ersetzen Sie dies durch Ihre echten Daten
+    // Hier sollten Sie die Daten für den ausgewählten Monat und das Jahr zurückgeben
+    return {
+      0: 5.0,
+      1: 25.0,
+      2: 100.0,
+      3: 75.0,
+    };
+  }
+
+  Map<int, double> getExpensesData() {
+    // Beispiel-Daten, ersetzen Sie dies durch Ihre echten Daten
+    // Hier sollten Sie die Daten für den ausgewählten Monat und das Jahr zurückgeben
+    return {
+      0: 10.0,
+      1: 50.0,
+      2: 200.0,
+      3: 150.0,
+    };
+  }
+
+  Map<String, double> getGroupedPayments(String month, int year) {
+    final payments = <String, double>{};
+    blockAmounts.forEach((block, monthData) {
+      if (monthData.containsKey(month) && monthData[month]!.containsKey(year)) {
+        final amounts = monthData[month]![year]!;
+        amounts.forEach((date, amount) {
+          if (payments.containsKey(date)) {
+            payments[date] = payments[date]! + amount;
+          } else {
+            payments[date] = amount;
+          }
+        });
+      }
+    });
+    return payments;
+  }
 }
