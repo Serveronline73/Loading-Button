@@ -58,49 +58,51 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildLogoContainer(),
-              const SizedBox(height: 24),
-              _buildHeaderText(),
-              //const SizedBox(height: 32),
-              const SizedBox(height: 12),
-              const Text(
-                'User Login',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (!_isCodeSent) ...[
-                _buildEmailInput(),
+      body: SingleChildScrollView(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildLogoContainer(),
+                const SizedBox(height: 24),
+                _buildHeaderText(),
+                //const SizedBox(height: 32),
                 const SizedBox(height: 12),
-                _buildRequestCodeButton(),
-              ] else ...[
-                _buildCodeInput(),
-                const SizedBox(height: 12),
-                _buildLoginButton(
-                  context,
-                  'Login',
-                  Icons.login,
-                  Colors.black,
-                  () => _handleLogin(context, 'Email'),
-                  backgroundColor: Colors.white,
-                  textColor: Colors.black,
-                  borderColor: Colors.grey[300],
+                const Text(
+                  'User Login',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
+                const SizedBox(height: 12),
+                if (!_isCodeSent) ...[
+                  _buildEmailInput(),
+                  const SizedBox(height: 12),
+                  _buildRequestCodeButton(),
+                ] else ...[
+                  _buildCodeInput(),
+                  const SizedBox(height: 12),
+                  _buildLoginButton(
+                    context,
+                    'Login',
+                    Icons.login,
+                    Colors.black,
+                    () => _handleLogin(context, 'Email'),
+                    backgroundColor: Colors.white,
+                    textColor: Colors.black,
+                    borderColor: Colors.grey[300],
+                  ),
+                ],
+                const SizedBox(height: 16),
+                _buildAdminLoginSection(),
+                const SizedBox(height: 24),
+                _buildTermsText(context),
               ],
-              const SizedBox(height: 16),
-              _buildAdminLoginSection(),
-              const SizedBox(height: 24),
-              _buildTermsText(context),
-            ],
+            ),
           ),
         ),
       ),
