@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -18,7 +20,9 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final paymentData = _createPaymentData();
-    final expenseData = _createExpenseData();
+    final groupedExpenses = _groupExpenses();
+    final expenseColors = _generateColors(groupedExpenses.length);
+    final expenseData = _createExpenseData(groupedExpenses, expenseColors);
 
     return Scaffold(
       appBar: AppBar(
@@ -41,6 +45,8 @@ class DashboardScreen extends StatelessWidget {
               'Ausgaben für $selectedMonth $selectedYear',
               expenseData,
             ),
+            const SizedBox(height: 16),
+            _buildExpenseLegend(groupedExpenses, expenseColors),
           ],
         ),
       ),
@@ -118,6 +124,28 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildExpenseLegend(
+      Map<String, double> groupedExpenses, List<Color> colors) {
+    final descriptions = groupedExpenses.keys.toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(descriptions.length, (index) {
+        final description = descriptions[index];
+        return Row(
+          children: [
+            Container(
+              width: 16,
+              height: 16,
+              color: colors[index],
+            ),
+            const SizedBox(width: 8),
+            Text(description),
+          ],
+        );
+      }),
+    );
+  }
+
   List<BarChartGroupData> _createPaymentData() {
     return payments.entries.map((entry) {
       final date = entry.key; // Datum des Zahlungseingangs
@@ -141,20 +169,52 @@ class DashboardScreen extends StatelessWidget {
     }).toList();
   }
 
-  List<BarChartGroupData> _createExpenseData() {
-    return expenses.asMap().entries.map((entry) {
-      final index = entry.key;
-      final amount = entry.value['amount'];
+  Map<String, double> _groupExpenses() {
+    final groupedExpenses = <String, double>{};
+
+    for (var expense in expenses) {
+      final description = expense['description'];
+      final amount = expense['amount'];
+
+      if (groupedExpenses.containsKey(description)) {
+        groupedExpenses[description] = groupedExpenses[description]! + amount;
+      } else {
+        groupedExpenses[description] = amount;
+      }
+    }
+
+    return groupedExpenses;
+  }
+
+  List<BarChartGroupData> _createExpenseData(
+      Map<String, double> groupedExpenses, List<Color> colors) {
+    return groupedExpenses.entries.map((entry) {
+      final description = entry.key;
+      final amount = entry.value;
+      final index = groupedExpenses.keys.toList().indexOf(description);
+
       return BarChartGroupData(
         x: index,
         barRods: [
           BarChartRodData(
             toY: amount,
-            color: Colors.red,
+            color: colors[index],
             width: 16,
           ),
         ],
       );
     }).toList();
+  }
+
+  List<Color> _generateColors(int count) {
+    final random = Random();
+    return List.generate(count, (index) {
+      return Color.fromARGB(
+        255,
+        random.nextInt(256),
+        random.nextInt(256),
+        random.nextInt(256),
+      );
+    });
   }
 }

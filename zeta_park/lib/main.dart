@@ -1,4 +1,5 @@
 // Importieren der notwendigen Pakete
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/app.dart';
@@ -8,11 +9,13 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'notifiers/theme_notifier.dart';
+import 'repository/firebase_auth_repository.dart';
 
 // Hauptfunktion der App
 void main() async {
-  // Initialisierung der Widgets
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
 
   // Laden der gespeicherten Einstellungen
   final prefs = await SharedPreferences.getInstance();
@@ -30,6 +33,8 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        Provider<FirebaseAuthRepository>(
+            create: (context) => FirebaseAuthRepository()),
         ChangeNotifierProvider(
           create: (context) => ThemeNotifier(isDarkMode),
         ),

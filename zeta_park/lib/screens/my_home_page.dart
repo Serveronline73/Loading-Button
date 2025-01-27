@@ -353,7 +353,7 @@ class _MyHomePageState extends State<MyHomePage> {
           const SizedBox(height: 8.0),
           const Text(
             //'Banka Dekont Giris Bilgileri',
-            " Einzahlungsinformationen",
+            " Einzahlung Information",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -610,7 +610,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ListView.builder(
               shrinkWrap: true,
               physics:
-                  const NeverScrollableScrollPhysics(), // Scrollen deaktivieren
+                  const AlwaysScrollableScrollPhysics(), // Scrollen deaktivieren
               itemCount: expenses.length * 2 - 1, // Anzahl der Ausgaben
               itemBuilder: (context, index) {
                 // Ausgaben anzeigen
