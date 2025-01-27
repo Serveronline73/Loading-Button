@@ -9,6 +9,8 @@ import 'package:money2/money2.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'dashboard_screen.dart';
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -81,6 +83,23 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
+  void _navigateToDashboard(BuildContext context) {
+    final payments =
+        _dataManager.getGroupedPayments(selectedMonth, selectedYear);
+    final expenses = _dataManager.getExpenses(selectedMonth, selectedYear);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DashboardScreen(
+          payments: payments,
+          expenses: expenses,
+          selectedMonth: selectedMonth,
+          selectedYear: selectedYear,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,6 +115,10 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () => _logout(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.dashboard),
+            onPressed: () => _navigateToDashboard(context),
           ),
         ],
       ),
@@ -599,7 +622,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     height: 1,
                   );
                 }
-                final expense = expenses[index ~/ 2]; // Ausgabenindex
+                final Map<String, dynamic> expense =
+                    expenses[index ~/ 2]; // Ausgabenindex
                 return Slidable(
                   // Ausgaben mit Slidable-Widget anzeigen
                   endActionPane: context.watch<RoleManager>().admin
