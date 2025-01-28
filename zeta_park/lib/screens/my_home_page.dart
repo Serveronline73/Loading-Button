@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/models/expense.dart';
+import 'package:flutter_application_1/models/payment.dart';
+import 'package:flutter_application_1/providers/data_provider.dart';
 import 'package:flutter_application_1/providers/role.dart';
 import 'package:flutter_application_1/repository/data_manager.dart';
 import 'package:flutter_application_1/repository/sharedPreferences.dart';
@@ -39,7 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
+    //_loadInitialData();
   }
 
   Future<void> _loadInitialData() async {
@@ -332,7 +335,28 @@ class _MyHomePageState extends State<MyHomePage> {
                     const SizedBox(height: 16.0),
                     ElevatedButton(
                       // Bestätigen Button
-                      onPressed: _onConfirmPressed,
+                      onPressed: () {
+                        if (_betrag1Controller.text != '') {
+                          context.read<DataProvider>().addPayment(
+                                Payment(
+                                  amount: double.parse(_betrag1Controller.text),
+                                  date: DateTime.now(),
+                                  type: "deposit",
+                                ),
+                              );
+                          _betrag1Controller.clear();
+                        }
+                        if (_betrag2Controller.text != '') {
+                          context.read<DataProvider>().addPayment(
+                                Payment(
+                                  amount: double.parse(_betrag2Controller.text),
+                                  date: DateTime.now(),
+                                  type: "additional",
+                                ),
+                              );
+                          _betrag2Controller.clear();
+                        }
+                      },
                       child: const Text('Bestätigen'),
                     )
                   ],
@@ -387,7 +411,6 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             keyboardType: TextInputType.number,
-            onChanged: _updateBetrag1, // Funktion zum Update des Betrags
           ),
         ),
         const SizedBox(width: 16.0),
@@ -397,7 +420,7 @@ class _MyHomePageState extends State<MyHomePage> {
             controller: _betrag2Controller,
             decoration: InputDecoration(
               //labelText: 'Ek Ödemesi',
-              labelText: "Nachzuhlung NK",
+              labelText: "Nachzahlung NK",
               labelStyle: const TextStyle(
                 color: Color(0xFF488AEC),
               ),
@@ -406,7 +429,6 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             keyboardType: TextInputType.number,
-            onChanged: _updateBetrag2, // Funktion zum Update des Betrags
           ),
         ),
       ],
@@ -470,9 +492,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _buildExpensesCard() {
     // Ausgabenkarte
-    final expenses = _dataManager.getExpenses(selectedMonth,
-        selectedYear); // Ausgaben für den ausgewählten Monat und das Jahr
-
+    final expenses = context.watch<DataProvider>().expenses;
+    print("----------------------------------------");
+    print(context.watch<DataProvider>().expenses.length);
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -562,21 +584,20 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: () async {
                         if (ausgabe > 0 && ausgabeDescription.isNotEmpty) {
                           final now = DateTime.now();
-                          await _dataManager.saveExpense(
-                            ausgabe,
-                            ausgabeDescription,
-                            '${now.day}.${now.month}.${now.year}',
-                            selectedMonth,
-                            selectedYear,
-                          );
+                          await context.read<DataProvider>().addExpense(
+                                Expense(
+                                  amount: ausgabe,
+                                  date: now,
+                                  description: ausgabeDescription,
+                                ),
+                              );
                           setState(() {
                             ausgabe = 0.00;
                             ausgabeDescription = '';
                             _ausgabeController.clear();
                             _ausgabeDescriptionController.clear();
                           });
-                          SharedPreferencesHelper.saveBetrag(
-                              'ausgabe', ausgabe);
+
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -611,7 +632,8 @@ class _MyHomePageState extends State<MyHomePage> {
               shrinkWrap: true,
               physics:
                   const AlwaysScrollableScrollPhysics(), // Scrollen deaktivieren
-              itemCount: expenses.length * 2 - 1, // Anzahl der Ausgaben
+              itemCount: context.watch<DataProvider>().expenses.length * 2 -
+                  1, // Anzahl der Ausgaben
               itemBuilder: (context, index) {
                 // Ausgaben anzeigen
                 if (index.isOdd) {
@@ -622,8 +644,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     height: 1,
                   );
                 }
-                final Map<String, dynamic> expense =
-                    expenses[index ~/ 2]; // Ausgabenindex
+                final expense = context
+                    .watch<DataProvider>()
+                    .expenses[index ~/ 2]; // Ausgabenindex
                 return Slidable(
                   // Ausgaben mit Slidable-Widget anzeigen
                   endActionPane: context.watch<RoleManager>().admin
@@ -632,8 +655,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           children: [
                             SlidableAction(
                               onPressed: (context) {
-                                _showEditDialog(
-                                    expense); // Dialog für Bearbeiten öffnen
+                                // _showEditDialog(
+                                //     expense); // Dialog für Bearbeiten öffnen
                               },
                               backgroundColor: Colors.blue,
                               foregroundColor: Colors.white,
@@ -642,8 +665,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                             SlidableAction(
                               onPressed: (context) {
-                                _showDeleteConfirmation(
-                                    expense); // Dialog für Löschen öffnen
+                                // _showDeleteConfirmation(
+                                //     expense); // Dialog für Löschen öffnen
                               },
                               backgroundColor: Colors.red,
                               foregroundColor: Colors.white,
@@ -657,13 +680,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     dense: true,
                     visualDensity: VisualDensity.compact,
                     title: Text(
-                      expense['description'],
+                      expense.description,
                       style: const TextStyle(color: Colors.white),
                     ),
-                    subtitle: Text(expense['date'],
+                    subtitle: Text(expense.date.toString(),
                         style: const TextStyle(color: Colors.white)),
                     trailing: Text(
-                      '${Money.fromInt((expense['amount'] * 100).toInt(), code: selectedCurrency.code)}', // Ausgabenbetrag in Währung umrechnen
+                      '${Money.fromInt((expense.amount * 100).toInt(), code: selectedCurrency.code)}', // Ausgabenbetrag in Währung umrechnen
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, color: Colors.red),
                     ),
@@ -692,7 +715,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${Money.fromInt((expenses.fold<double>(0, (sum, expense) => sum + expense['amount']) * 100).toInt(), code: selectedCurrency.code)}', // Gesamtausgaben in Währung umrechnen
+                  '${Money.fromInt((expenses.fold<double>(0, (sum, expense) => sum + expense.amount) * 100).toInt(), code: selectedCurrency.code)}', // Gesamtausgaben in Währung umrechnen
                   style: const TextStyle(
                     color: Colors.red,
                     fontWeight: FontWeight.bold,
@@ -708,29 +731,21 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onConfirmPressed() async {
-    // Funktion zum Speichern der Eingaben
     _saveAmounts();
     await SharedPreferencesHelper.saveNebenkosten(
-        // Eingaben in SharedPreferences speichern
-        'selectedBlock',
-        selectedBlock);
+        'selectedBlock', selectedBlock);
     await SharedPreferencesHelper.saveNebenkosten(
-        // Eingaben in SharedPreferences speichern
-        'selectedMonth',
-        selectedMonth);
-    await SharedPreferencesHelper.saveYear('selectedYear',
-        selectedYear); // Eingaben in SharedPreferences speichern
-    await SharedPreferencesHelper.saveBetrag(
-        'betrag1', betrag1); // Eingaben in SharedPreferences speichern
-    await SharedPreferencesHelper.saveBetrag(
-        'betrag2', betrag2); // Eingaben in SharedPreferences speichern
+        'selectedMonth', selectedMonth);
+    await SharedPreferencesHelper.saveYear('selectedYear', selectedYear);
+    await SharedPreferencesHelper.saveBetrag('betrag1', betrag1);
+    await SharedPreferencesHelper.saveBetrag('betrag2', betrag2);
     setState(() {
-      betrag1 = 0.00; // Betrag1 zurücksetzen
-      betrag2 = 0.00; // Betrag2 zurücksetzen
-      _betrag1Controller.clear(); // Betrag1-Controller zurücksetzen
-      _betrag2Controller.clear(); // Betrag2-Controller zurücksetzen
+      betrag1 = 0.00;
+      betrag2 = 0.00;
+      _betrag1Controller.clear();
+      _betrag2Controller.clear();
     });
-    _showConfirmationDialog(); // Bestätigungsdialog anzeigen
+    _showConfirmationDialog();
   }
 
   void _updateBetrag1(String value) {

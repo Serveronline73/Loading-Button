@@ -8,7 +8,7 @@ class FirestoreDataRepository {
   Future<List<Expense>> getExpenses({required House house}) async {
     try {
       QuerySnapshot querySnapshot =
-          await _firestore.collection('${house.id}/expenses').get();
+          await _firestore.collection('houses/${house.id}/expenses').get();
 
       // Extrahiere die Daten aus den Dokumenten
       List<Expense> expenses = querySnapshot.docs.map((doc) {
@@ -16,24 +16,28 @@ class FirestoreDataRepository {
       }).toList();
       return expenses;
     } catch (e) {
-      print('Fehler beim Abrufen der Daten: $e');
+      print('Fehler beim Abrufen der Daten(expenses): $e');
       return [];
     }
   }
 
+  // Ausgabe hinzufügen
   Future<void> addExpense(
       {required Expense expense, required House house}) async {
     try {
-      await _firestore.collection('${house.id}/expenses').add(expense.toMap());
+      await _firestore
+          .collection('houses/${house.id}/expenses')
+          .add(expense.toMap());
     } catch (e) {
       print('Fehler beim Hinzufügen der Ausgabe: $e');
     }
   }
 
+  // Zahlungen abrufen
   Future<List<Payment>> getPayments({required House house}) async {
     try {
       QuerySnapshot querySnapshot =
-          await _firestore.collection('${house.id}/payments').get();
+          await _firestore.collection('houses/${house.id}/payments').get();
 
       // Extrahiere die Daten aus den Dokumenten
       List<Payment> payments = querySnapshot.docs.map((doc) {
@@ -46,10 +50,13 @@ class FirestoreDataRepository {
     }
   }
 
+// Zahlung hinzufügen
   Future<void> addPayment(
       {required Payment payment, required House house}) async {
     try {
-      await _firestore.collection('${house.id}/payments').add(payment.toMap());
+      await _firestore
+          .collection('houses/${house.id}/payments')
+          .add(payment.toMap());
     } catch (e) {
       print('Fehler beim Hinzufügen der Zahlung: $e');
     }

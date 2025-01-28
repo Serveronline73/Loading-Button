@@ -33,4 +33,8 @@ class FirebaseAuthRepository {
   User? getCurrentUser() {
     return _auth.currentUser;
   }
+
+  Stream<User?> signInState() {
+    return _auth.authStateChanges();
+  }
 }

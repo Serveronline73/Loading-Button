@@ -88,7 +88,7 @@ class DataManager {
       monthData.forEach((month, yearData) {
         serialized[block][month] = {};
         yearData.forEach((year, amounts) {
-          // Convert year to string and ensure amounts are serializable
+          // konvertiere die Werte in einfache Datentypen
           serialized[block][month][year.toString()] = {
             'aidat': amounts['aidat']?.toDouble() ?? 0.0,
             'ek': amounts['ek']?.toDouble() ?? 0.0,

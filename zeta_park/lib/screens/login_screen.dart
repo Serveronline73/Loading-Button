@@ -12,16 +12,16 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController adminEmailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final bool _isCodeSent = false;
-  final String _fixedValidationCode = '123456';
-  String _errorMessage = '';
+  final bool isCodeSent = false;
+  final String fixedValidationCode = '123456';
+  String errorMessage = '';
 
   final List<String> validEmailDomains = [
     '.com',
@@ -225,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildEmailInput() {
+  Widget buildEmailInput() {
     return TextField(
       controller: emailController,
       decoration: InputDecoration(
@@ -338,19 +338,21 @@ class _LoginScreenState extends State<LoginScreen> {
     final code = passwordController.text;
     if (!_isValidEmail(email)) {
       setState(() {
-        _errorMessage = 'Invalid email address';
+        errorMessage = 'Invalid email address';
       });
       return;
     }
     final response =
         await context.read<FirebaseAuthRepository>().signIn(email, code);
     if (response == null) {
-      if (code == "admin12") {
-        context.read<RoleManager>().setAdmin(isAdmin: true);
-      } else {
-        context.read<RoleManager>().setAdmin(isAdmin: false);
-      }
-      Provider.of<LoginNotifier>(context, listen: false).login();
+      setState(() {
+        if (code == "admin12") {
+          context.read<RoleManager>().setAdmin(isAdmin: true);
+        } else {
+          context.read<RoleManager>().setAdmin(isAdmin: false);
+        }
+        Provider.of<LoginNotifier>(context, listen: false).login();
+      });
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isLoggedIn', true);
       Navigator.pushReplacement(
@@ -359,7 +361,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       setState(() {
-        _errorMessage = response;
+        errorMessage = response;
       });
       showDialog(
         context: context,

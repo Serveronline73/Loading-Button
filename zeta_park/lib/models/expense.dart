@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Expense {
   final String description;
   final double amount;
@@ -12,7 +14,7 @@ class Expense {
     return Expense(
       description: map['description'],
       amount: map['amount'],
-      date: DateTime.parse(map['date']),
+      date: (map['date'] as Timestamp).toDate(),
     );
   }
   Map<String, dynamic> toMap() {
