@@ -152,8 +152,8 @@ class DashboardScreen extends StatelessWidget {
       final amount = entry.value;
       final day =
           int.tryParse(date.split('.')[0]) ?? 0; // Tag des Monats als x-Wert
-      final isNachzahlung =
-          date.contains('Nachzahlung'); // Check if it's a "Nachzahlung"
+      final isNachzahlung = date.contains(
+          'Nachzahlung'); // Prüfe, ob es sich um eine Nachzahlung handelt
       return BarChartGroupData(
         x: day, // Tag des Monats als x-Wert
         barRods: [

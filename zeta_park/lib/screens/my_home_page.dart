@@ -46,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _loadInitialData() async {
-    await _dataManager.loadData();
+    context.read<DataProvider>();
     setState(() async {
       selectedBlock =
           await SharedPreferencesHelper.loadBlock('selectedBlock') ??
@@ -365,7 +365,7 @@ class _MyHomePageState extends State<MyHomePage> {
           const SizedBox(height: 16.0),
           const Text(
             //'Site Yönetimi: Fatih Sevindik',
-            "Verwaltung: Fatih Sevindik",
+            "Verwaltung: Dennis Durmus",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
