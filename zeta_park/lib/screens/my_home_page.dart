@@ -1,19 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/models/expense.dart';
-import 'package:flutter_application_1/models/payment.dart';
-import 'package:flutter_application_1/providers/data_provider.dart';
-import 'package:flutter_application_1/providers/role.dart';
 import 'package:flutter_application_1/repository/data_manager.dart';
 import 'package:flutter_application_1/repository/sharedPreferences.dart';
 import 'package:flutter_application_1/screens/item_detail_screen.dart';
 import 'package:flutter_application_1/widgets/custom_card.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:intl/intl.dart';
 import 'package:money2/money2.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'dashboard_screen.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -29,7 +21,7 @@ class _MyHomePageState extends State<MyHomePage> {
   double ausgabe = 0.00;
   String ausgabeDescription = '';
   String selectedBlock = 'Zeta Park Blok 1/1';
-  String selectedMonth = 'Januar';
+  String selectedMonth = 'Ocak';
   int selectedYear = 2025;
   Currency selectedCurrency = Currency.create('TRY', 2, symbol: '₺');
 
@@ -43,11 +35,11 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    //_loadInitialData();
+    _loadInitialData();
   }
 
   Future<void> _loadInitialData() async {
-    context.read<DataProvider>();
+    await _dataManager.loadData();
     setState(() async {
       selectedBlock =
           await SharedPreferencesHelper.loadBlock('selectedBlock') ??
@@ -87,23 +79,6 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void _navigateToDashboard(BuildContext context) {
-    final payments =
-        _dataManager.getGroupedPayments(selectedMonth, selectedYear);
-    final expenses = _dataManager.getExpenses(selectedMonth, selectedYear);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DashboardScreen(
-          payments: payments,
-          expenses: expenses,
-          selectedMonth: selectedMonth,
-          selectedYear: selectedYear,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,15 +89,10 @@ class _MyHomePageState extends State<MyHomePage> {
           'Zeta Park',
           style: TextStyle(color: Colors.white), // Textfarbe der AppBar
         ),
-        // AppBar-Icon zum Ausloggen
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () => _logout(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.dashboard),
-            onPressed: () => _navigateToDashboard(context),
           ),
         ],
       ),
@@ -146,12 +116,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     padding: const EdgeInsets.all(21.0),
                     child: Column(
                       children: [
-                        Text(
-                          context.watch<RoleManager>().admin
-                              ? "Admin"
-                              : "Normaler User",
-                          style: const TextStyle(color: Colors.white),
-                        ),
                         const CustomCard(),
                         const SizedBox(height: 16.0),
                         _buildBlockDropdown(),
@@ -176,33 +140,30 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _buildBlockDropdown() {
     final List<String> blocks = _generateBlocks();
 
-    return context.watch<RoleManager>().admin
-        ? DropdownButton<String>(
-            value: selectedBlock,
-            dropdownColor: Colors.black, // Hintergrundfarbe des Dropdown-Menüs
+    return DropdownButton<String>(
+      value: selectedBlock,
+      dropdownColor: Colors.black, // Hintergrundfarbe des Dropdown-Menüs
+      style:
+          const TextStyle(color: Colors.white), // Textfarbe der Dropdown-Menüs
+      items: blocks.map((String block) {
+        return DropdownMenuItem<String>(
+          value: block,
+          child: Text(
+            block,
             style: const TextStyle(
                 color: Colors.white), // Textfarbe der Dropdown-Menüs
-            items: blocks.map((String block) {
-              return DropdownMenuItem<String>(
-                value: block,
-                child: Text(
-                  block,
-                  style: const TextStyle(
-                      color: Colors.white), // Textfarbe der Dropdown-Menüs
-                ),
-              );
-            }).toList(),
-            onChanged: (String? newValue) {
-              setState(() {
-                selectedBlock = newValue!;
-                _loadAmounts();
-              });
-              SharedPreferencesHelper.saveNebenkosten(
-                  'selectedBlock', selectedBlock);
-            },
-            isExpanded: true,
-          )
-        : const SizedBox();
+          ),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        setState(() {
+          selectedBlock = newValue!;
+          _loadAmounts();
+        });
+        SharedPreferencesHelper.saveNebenkosten('selectedBlock', selectedBlock);
+      },
+      isExpanded: true,
+    );
   }
 
   List<String> _generateBlocks() {
@@ -243,6 +204,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 selectedMonth = newValue!;
                 _loadAmounts();
               });
+              SharedPreferencesHelper.saveNebenkosten(
+                  'selectedMonth', selectedMonth);
             },
             isExpanded: true,
           ),
@@ -280,18 +243,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<String> _generateMonths() {
     return [
-      "Januar",
-      "Februar",
-      "März",
-      "April",
-      "Mai",
-      "Juni",
-      "Juli",
-      "August",
-      "September",
-      "Oktober",
-      "November",
-      "Dezember",
+      'Ocak',
+      'Şubat',
+      'Mart',
+      'Nisan',
+      'Mayıs',
+      'Haziran',
+      'Temmuz',
+      'Ağustos',
+      'Eylül',
+      'Ekim',
+      'Kasım',
+      'Aralık'
     ];
   }
 
@@ -323,64 +286,33 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       padding: const EdgeInsets.all(20),
-      // Zeile 300 bis 313 sorgt dafür das die Eingabefelder für den Nutzer deaktiviert wird
-
       child: Column(
         children: [
-          context.watch<RoleManager>().admin
-              ? Column(
-                  children: [
-                    paymentFieldsNK(),
-                    const SizedBox(height: 16.0),
-                    ElevatedButton(
-                      // Bestätigen Button
-                      onPressed: () {
-                        if (_betrag1Controller.text != '') {
-                          context.read<DataProvider>().addPayment(
-                                Payment(
-                                  amount: double.parse(_betrag1Controller.text),
-                                  date: DateTime.now(),
-                                  type: "deposit",
-                                ),
-                              );
-                          _betrag1Controller.clear();
-                        }
-                        if (_betrag2Controller.text != '') {
-                          context.read<DataProvider>().addPayment(
-                                Payment(
-                                  amount: double.parse(_betrag2Controller.text),
-                                  date: DateTime.now(),
-                                  type: "additional",
-                                ),
-                              );
-                          _betrag2Controller.clear();
-                        }
-                      },
-                      child: const Text('Bestätigen'),
-                    )
-                  ],
-                )
-              : const SizedBox(),
+          paymentFieldsNK(),
+          const SizedBox(height: 16.0),
+          ElevatedButton(
+            // Bestätigen Button
+            onPressed: _onConfirmPressed,
+            child: const Text('Bestätigen'),
+          ),
           const SizedBox(height: 16.0),
           const Text(
-            //'Site Yönetimi: Fatih Sevindik',
-            "Verwaltung: Dennis Durmus",
+            'Site Yönetimi: Fatih Sevindik',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
-              color: Colors.white,
+              color: Color(0xFF488AEC),
             ),
           ),
           const SizedBox(height: 8.0),
           Divider(thickness: 1, color: Colors.grey[300]),
           const SizedBox(height: 8.0),
           const Text(
-            //'Banka Dekont Giris Bilgileri',
-            " Einzahlung Information",
+            'Banka Dekont Giris Bilgileri',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
-              color: Colors.white,
+              color: Color(0xFF488AEC),
             ),
           ),
           const SizedBox(height: 8.0),
@@ -399,8 +331,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: TextField(
             controller: _betrag1Controller,
             decoration: InputDecoration(
-              // labelText: 'Aidat Ödemesi',
-              labelText: "Einzahlung NK",
+              labelText: 'Aidat Ödemesi',
               labelStyle: const TextStyle(
                 color: Color(0xFF488AEC),
               ),
@@ -410,6 +341,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             keyboardType: TextInputType.number,
+            onChanged: _updateBetrag1, // Funktion zum Update des Betrags
           ),
         ),
         const SizedBox(width: 16.0),
@@ -418,8 +350,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: TextField(
             controller: _betrag2Controller,
             decoration: InputDecoration(
-              //labelText: 'Ek Ödemesi',
-              labelText: "Nachzahlung NK",
+              labelText: 'Ek Ödemesi',
               labelStyle: const TextStyle(
                 color: Color(0xFF488AEC),
               ),
@@ -428,6 +359,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             keyboardType: TextInputType.number,
+            onChanged: _updateBetrag2, // Funktion zum Update des Betrags
           ),
         ),
       ],
@@ -443,8 +375,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              //'Aidat Ödemesi:',
-              "Nebenkosten Zahlungen:",
+              'Aidat Ödemesi:',
               style: TextStyle(color: Color(0xFF488AEC)),
             ),
             Text(
@@ -456,10 +387,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-                //'Ek Ödeme:',
-                "Nebenkosten Nachzahlung:",
-                style: TextStyle(color: Color(0xFF488AEC))),
+            const Text('Ek Ödeme:', style: TextStyle(color: Color(0xFF488AEC))),
             Text(
                 '${Money.fromInt((betrag2 * 100).toInt(), code: selectedCurrency.code)}', // Betrag2 in Währung umrechnen
                 style: const TextStyle(color: Colors.white)),
@@ -470,9 +398,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-                //'Toplam Ödeme ($selectedMonth $selectedYear):',
-                // // Gesamtbetrag für den Monat und das Jahr
-                "Gesamtbetrag ($selectedMonth $selectedYear):",
+                'Toplam Ödeme ($selectedMonth $selectedYear):', // Gesamtbetrag für den Monat und das Jahr
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF488AEC),
@@ -491,7 +417,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _buildExpensesCard() {
     // Ausgabenkarte
-    //List<Expense> expenses = context.watch<DataProvider>().expenses;
+    final expenses = _dataManager.getExpenses(selectedMonth,
+        selectedYear); // Ausgaben für den ausgewählten Monat und das Jahr
 
     return Container(
       decoration: BoxDecoration(
@@ -534,83 +461,86 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           const SizedBox(height: 16.0),
-          context.watch<RoleManager>().admin
-              ? Column(
-                  children: [
-                    TextField(
-                      controller: _ausgabeController,
-                      decoration: InputDecoration(
-                        labelText: 'Ausgabenbetrag',
-                        labelStyle: const TextStyle(
-                          color: Colors.white,
-                        ),
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) {
-                        setState(() {
-                          ausgabe = double.tryParse(value) ?? 0.00;
-                        });
-                        SharedPreferencesHelper.saveBetrag('ausgabe', ausgabe);
-                      },
+          TextField(
+            controller: _ausgabeController,
+            decoration: InputDecoration(
+              labelText: 'Ausgabenbetrag',
+              labelStyle: const TextStyle(
+                color: Color(0xFF488AEC),
+              ),
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+            keyboardType: TextInputType.number,
+            onChanged: (value) {
+              setState(() {
+                ausgabe = double.tryParse(value) ?? 0.00;
+              });
+              SharedPreferencesHelper.saveBetrag('ausgabe',
+                  ausgabe); // Ausgabenbetrag speichern in SharedPreferences
+            },
+          ),
+          const SizedBox(height: 16.0),
+          TextField(
+            controller: _ausgabeDescriptionController,
+            decoration: InputDecoration(
+              labelText: 'Beschreibung',
+              labelStyle: const TextStyle(
+                color: Color(0xFF488AEC),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+            onChanged: (value) {
+              setState(() {
+                ausgabeDescription = value;
+              });
+              SharedPreferencesHelper.saveNebenkosten(
+                  // Beschreibung speichern in SharedPreferences
+                  'ausgabeDescription',
+                  ausgabeDescription); // Beschreibung der Ausgabe speichern in SharedPreferences
+            },
+          ),
+          const SizedBox(height: 16.0),
+          ElevatedButton(
+            onPressed: () async {
+              if (ausgabe > 0 && ausgabeDescription.isNotEmpty) {
+                // Wenn Ausgabenbetrag und Beschreibung vorhanden sind
+                final now = DateTime.now(); // Aktuelles Datum und Uhrzeit
+                await _dataManager.saveExpense(
+                  // Ausgabe speichern in Datenbank
+                  ausgabe,
+                  ausgabeDescription,
+                  '${now.day}.${now.month}.${now.year}', // Datum der Ausgabe speichern
+                  selectedMonth,
+                  selectedYear,
+                );
+                setState(() {
+                  ausgabe = 0.00; // Nach Speichern zurücksetzen
+                  ausgabeDescription = ''; // Nach Speichern zurücksetzen
+                  _ausgabeController.clear(); // Felder leeren
+                  _ausgabeDescriptionController.clear(); // Felder leeren
+                });
+                SharedPreferencesHelper.saveBetrag('ausgabe',
+                    ausgabe); // Ausgabenbetrag speichern in SharedPreferences
+                if (mounted) {
+                  // Wenn die App aktiv ist
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    // Snackbar anzeigen
+                    const SnackBar(
+                      content: Text('Ausgabe wurde gespeichert'),
                     ),
-                    const SizedBox(height: 16.0),
-                    TextField(
-                      controller: _ausgabeDescriptionController,
-                      decoration: InputDecoration(
-                        labelText: 'Beschreibung',
-                        labelStyle: const TextStyle(
-                          color: Colors.white,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          ausgabeDescription = value;
-                        });
-                        SharedPreferencesHelper.saveNebenkosten(
-                            'ausgabeDescription', ausgabeDescription);
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (ausgabe > 0 && ausgabeDescription.isNotEmpty) {
-                          final now = DateTime.now();
-                          await context.read<DataProvider>().addExpense(
-                                Expense(
-                                  amount: ausgabe,
-                                  date: now,
-                                  description: ausgabeDescription,
-                                ),
-                              );
-                          setState(() {
-                            ausgabe = 0.00;
-                            ausgabeDescription = '';
-                            _ausgabeController.clear();
-                            _ausgabeDescriptionController.clear();
-                          });
-
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Ausgabe wurde gespeichert'),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                      child: const Text('Ausgabe speichern'),
-                    ),
-                  ],
-                )
-              : const SizedBox(),
-          if (context.watch<DataProvider>().expenses.isNotEmpty) ...[
+                  );
+                }
+              }
+            },
+            child: const Text('Ausgabe speichern'), // Text des Buttons
+          ),
+          if (expenses.isNotEmpty) ...[
+            // Wenn Ausgaben vorhanden sind
             const SizedBox(height: 8.0),
             const Divider(
               thickness: 1,
@@ -629,9 +559,8 @@ class _MyHomePageState extends State<MyHomePage> {
             ListView.builder(
               shrinkWrap: true,
               physics:
-                  const AlwaysScrollableScrollPhysics(), // Scrollen deaktivieren
-              itemCount: context.watch<DataProvider>().expenses.length * 2 -
-                  1, // Anzahl der Ausgaben
+                  const NeverScrollableScrollPhysics(), // Scrollen deaktivieren
+              itemCount: expenses.length * 2 - 1, // Anzahl der Ausgaben
               itemBuilder: (context, index) {
                 // Ausgaben anzeigen
                 if (index.isOdd) {
@@ -642,50 +571,45 @@ class _MyHomePageState extends State<MyHomePage> {
                     height: 1,
                   );
                 }
-                final expense = context
-                    .watch<DataProvider>()
-                    .expenses[index ~/ 2]; // Ausgabenindex
+                final expense = expenses[index ~/ 2]; // Ausgabenindex
                 return Slidable(
                   // Ausgaben mit Slidable-Widget anzeigen
-                  endActionPane: context.watch<RoleManager>().admin
-                      ? ActionPane(
-                          motion: const ScrollMotion(),
-                          children: [
-                            SlidableAction(
-                              onPressed: (context) {
-                                // _showEditDialog(
-                                //     expense); // Dialog für Bearbeiten öffnen
-                              },
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              icon: Icons.edit,
-                              label: 'Bearbeiten',
-                            ),
-                            SlidableAction(
-                              onPressed: (context) {
-                                // _showDeleteConfirmation(
-                                //     expense); // Dialog für Löschen öffnen
-                              },
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              icon: Icons.delete,
-                              label: 'Löschen',
-                            ),
-                          ],
-                        )
-                      : null,
+                  endActionPane: ActionPane(
+                    motion: const ScrollMotion(),
+                    children: [
+                      SlidableAction(
+                        onPressed: (context) {
+                          _showEditDialog(
+                              expense); // Dialog für Bearbeiten öffnen
+                        },
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        icon: Icons.edit,
+                        label: 'Bearbeiten',
+                      ),
+                      SlidableAction(
+                        onPressed: (context) {
+                          _showDeleteConfirmation(
+                              expense); // Dialog für Löschen öffnen
+                        },
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        icon: Icons.delete,
+                        label: 'Löschen',
+                      ),
+                    ],
+                  ),
                   child: ListTile(
                     dense: true,
                     visualDensity: VisualDensity.compact,
                     title: Text(
-                      expense.description,
+                      expense['description'],
                       style: const TextStyle(color: Colors.white),
                     ),
-                    subtitle: Text(
-                        DateFormat('dd.MM.yyyy').format(expense.date),
+                    subtitle: Text(expense['date'],
                         style: const TextStyle(color: Colors.white)),
                     trailing: Text(
-                      '${Money.fromInt((expense.amount * 100).toInt(), code: selectedCurrency.code)}', // Ausgabenbetrag in Währung umrechnen
+                      '${Money.fromInt((expense['amount'] * 100).toInt(), code: selectedCurrency.code)}', // Ausgabenbetrag in Währung umrechnen
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, color: Colors.red),
                     ),
@@ -714,7 +638,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${Money.fromInt((context.watch<DataProvider>().expenses.fold<double>(0, (sum, expense) => sum + expense.amount) * 100).toInt(), code: selectedCurrency.code)}', // Gesamtausgaben in Währung umrechnen
+                  '${Money.fromInt((expenses.fold<double>(0, (sum, expense) => sum + expense['amount']) * 100).toInt(), code: selectedCurrency.code)}', // Gesamtausgaben in Währung umrechnen
                   style: const TextStyle(
                     color: Colors.red,
                     fontWeight: FontWeight.bold,
@@ -730,21 +654,29 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onConfirmPressed() async {
+    // Funktion zum Speichern der Eingaben
     _saveAmounts();
     await SharedPreferencesHelper.saveNebenkosten(
-        'selectedBlock', selectedBlock);
+        // Eingaben in SharedPreferences speichern
+        'selectedBlock',
+        selectedBlock);
     await SharedPreferencesHelper.saveNebenkosten(
-        'selectedMonth', selectedMonth);
-    await SharedPreferencesHelper.saveYear('selectedYear', selectedYear);
-    await SharedPreferencesHelper.saveBetrag('betrag1', betrag1);
-    await SharedPreferencesHelper.saveBetrag('betrag2', betrag2);
+        // Eingaben in SharedPreferences speichern
+        'selectedMonth',
+        selectedMonth);
+    await SharedPreferencesHelper.saveYear('selectedYear',
+        selectedYear); // Eingaben in SharedPreferences speichern
+    await SharedPreferencesHelper.saveBetrag(
+        'betrag1', betrag1); // Eingaben in SharedPreferences speichern
+    await SharedPreferencesHelper.saveBetrag(
+        'betrag2', betrag2); // Eingaben in SharedPreferences speichern
     setState(() {
-      betrag1 = 0.00;
-      betrag2 = 0.00;
-      _betrag1Controller.clear();
-      _betrag2Controller.clear();
+      betrag1 = 0.00; // Betrag1 zurücksetzen
+      betrag2 = 0.00; // Betrag2 zurücksetzen
+      _betrag1Controller.clear(); // Betrag1-Controller zurücksetzen
+      _betrag2Controller.clear(); // Betrag2-Controller zurücksetzen
     });
-    _showConfirmationDialog();
+    _showConfirmationDialog(); // Bestätigungsdialog anzeigen
   }
 
   void _updateBetrag1(String value) {
@@ -838,8 +770,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     builder: (context) => ItemDetailScreen(
                       // ItemDetailScreen anzeigen
                       title: selectedBlock,
-                      //subtitle: 'Aidat ödeme ve Ek Ödeme Bilgileri.',
-                      subtitle: 'Nebenkosten- und Nachzahlungsinformationen.',
+                      subtitle: 'Aidat ödeme ve Ek Ödeme Bilgileri.',
                       blockAmounts: _dataManager
                           .getBlockAmounts(), // Datenbank-Objekt übergeben
                     ),
@@ -900,8 +831,7 @@ class _MyHomePageState extends State<MyHomePage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context), // Dialog schließen
-              child: const Text('Abbrechen',
-                  style: TextStyle(color: Colors.white)),
+              child: const Text('Abbrechen'),
             ),
             TextButton(
               onPressed: () async {
@@ -929,10 +859,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   }
                 }
               },
-              child: const Text(
-                'Speichern',
-                style: TextStyle(color: Colors.green),
-              ),
+              child: const Text('Speichern'),
             ),
           ],
         );
@@ -960,8 +887,7 @@ class _MyHomePageState extends State<MyHomePage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context), // Dialog schließen
-              child: const Text('Abbrechen',
-                  style: TextStyle(color: Colors.white)),
+              child: const Text('Abbrechen'),
             ),
             TextButton(
               onPressed: () async {
