@@ -100,7 +100,8 @@ class ExpensesCard extends StatelessWidget {
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
                         onAusgabeChanged(double.tryParse(value) ?? 0.00);
-                        SharedPreferencesHelper.saveBetrag('ausgabe', ausgabe);
+                        SharedPreferencesRepository.saveBetrag(
+                            'ausgabe', ausgabe);
                       },
                     ),
                     const SizedBox(height: 16.0),
@@ -117,7 +118,7 @@ class ExpensesCard extends StatelessWidget {
                       ),
                       onChanged: (value) {
                         onAusgabeDescriptionChanged(value);
-                        SharedPreferencesHelper.saveNebenkosten(
+                        SharedPreferencesRepository.saveNebenkosten(
                             'ausgabeDescription', ausgabeDescription);
                       },
                     ),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter_application_1/repository/sharedPreferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DataManager {
@@ -17,8 +18,7 @@ class DataManager {
   // Laden der Ausgabenliste
   Future<void> loadExpenses() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final expensesJson = prefs.getString('expenses');
+      final expensesJson = await SharedPreferencesRepository.loadExpenses();
       if (expensesJson != null) {
         expenses = List<Map<String, dynamic>>.from(
             jsonDecode(expensesJson).map((x) => Map<String, dynamic>.from(x)));

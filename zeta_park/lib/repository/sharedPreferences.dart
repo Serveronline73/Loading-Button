@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-class SharedPreferencesHelper {
+class SharedPreferencesRepository {
   // Speichert Nebenkosten
   static Future<void> saveNebenkosten(String key, String value) async {
     final prefs = await SharedPreferences.getInstance();
@@ -35,5 +35,11 @@ class SharedPreferencesHelper {
   static Future<void> removeAusgaben(String key) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.remove(key);
+  }
+
+  static Future<String?> loadExpenses() async {
+    final prefs = await SharedPreferences.getInstance();
+    final expensesJson = prefs.getString('expenses');
+    return expensesJson;
   }
 }

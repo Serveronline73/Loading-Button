@@ -46,15 +46,18 @@ class _MyHomePageState extends State<MyHomePage> {
     await _dataManager.loadData();
     setState(() async {
       selectedBlock =
-          await SharedPreferencesHelper.loadBlock('selectedBlock') ??
+          await SharedPreferencesRepository.loadBlock('selectedBlock') ??
               selectedBlock;
       selectedMonth =
-          await SharedPreferencesHelper.loadBlock('selectedMonth') ??
+          await SharedPreferencesRepository.loadBlock('selectedMonth') ??
               selectedMonth;
-      selectedYear = await SharedPreferencesHelper.loadYear('selectedYear') ??
-          selectedYear;
-      betrag1 = await SharedPreferencesHelper.loadBetrag('betrag1') ?? betrag1;
-      betrag2 = await SharedPreferencesHelper.loadBetrag('betrag2') ?? betrag2;
+      selectedYear =
+          await SharedPreferencesRepository.loadYear('selectedYear') ??
+              selectedYear;
+      betrag1 =
+          await SharedPreferencesRepository.loadBetrag('betrag1') ?? betrag1;
+      betrag2 =
+          await SharedPreferencesRepository.loadBetrag('betrag2') ?? betrag2;
       _betrag1Controller.text = betrag1.toString();
       _betrag2Controller.text = betrag2.toString();
       _loadAmounts();
@@ -193,7 +196,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 selectedBlock = newValue!;
                 _loadAmounts();
               });
-              SharedPreferencesHelper.saveNebenkosten(
+              SharedPreferencesRepository.saveNebenkosten(
                   'selectedBlock', selectedBlock);
             },
             isExpanded: true,
@@ -239,7 +242,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 selectedMonth = newValue!;
                 _loadAmounts();
               });
-              SharedPreferencesHelper.saveNebenkosten(
+              SharedPreferencesRepository.saveNebenkosten(
                   'selectedMonth', selectedMonth);
             },
             isExpanded: true,
@@ -267,7 +270,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 selectedYear = newValue!;
                 _loadAmounts();
               });
-              SharedPreferencesHelper.saveYear('selectedYear', selectedYear);
+              SharedPreferencesRepository.saveYear(
+                  'selectedYear', selectedYear);
             },
             isExpanded: true,
           ),
@@ -512,19 +516,19 @@ class _MyHomePageState extends State<MyHomePage> {
   void _onConfirmPressed() async {
     // Funktion zum Speichern der Eingaben
     _saveAmounts();
-    await SharedPreferencesHelper.saveNebenkosten(
+    await SharedPreferencesRepository.saveNebenkosten(
         // Eingaben in SharedPreferences speichern
         'selectedBlock',
         selectedBlock);
-    await SharedPreferencesHelper.saveNebenkosten(
+    await SharedPreferencesRepository.saveNebenkosten(
         // Eingaben in SharedPreferences speichern
         'selectedMonth',
         selectedMonth);
-    await SharedPreferencesHelper.saveYear('selectedYear',
+    await SharedPreferencesRepository.saveYear('selectedYear',
         selectedYear); // Eingaben in SharedPreferences speichern
-    await SharedPreferencesHelper.saveBetrag(
+    await SharedPreferencesRepository.saveBetrag(
         'betrag1', betrag1); // Eingaben in SharedPreferences speichern
-    await SharedPreferencesHelper.saveBetrag(
+    await SharedPreferencesRepository.saveBetrag(
         'betrag2', betrag2); // Eingaben in SharedPreferences speichern
     setState(() {
       betrag1 = 0.00; // Betrag1 zurücksetzen
@@ -540,7 +544,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       betrag1 = double.tryParse(value) ?? 0.00; // Betrag1 als Double parsen
     });
-    SharedPreferencesHelper.saveBetrag(
+    SharedPreferencesRepository.saveBetrag(
         'betrag1', betrag1); // Eingaben in SharedPreferences speichern
   }
 
@@ -549,7 +553,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       betrag2 = double.tryParse(value) ?? 0.00; // Betrag2 als Double parsen
     });
-    SharedPreferencesHelper.saveBetrag(
+    SharedPreferencesRepository.saveBetrag(
         'betrag2', betrag2); // Eingaben in SharedPreferences speichern
   }
 
@@ -585,7 +589,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _betrag1Controller.text = betrag1.toString();
         _betrag2Controller.text = betrag2.toString();
       });
-      SharedPreferencesHelper.saveBetrag('betrag1', betrag1);
+      SharedPreferencesRepository.saveBetrag('betrag1', betrag1);
     } else {
       setState(() {
         // Eingaben zurücksetzen
@@ -594,7 +598,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _betrag1Controller.clear(); // Betrag1-Controller zurücksetzen
         _betrag2Controller.clear(); // Betrag2-Controller zurücksetzen
       });
-      SharedPreferencesHelper.saveBetrag(
+      SharedPreferencesRepository.saveBetrag(
           'betrag1', betrag1); // Eingaben in SharedPreferences speichern
     }
   }
