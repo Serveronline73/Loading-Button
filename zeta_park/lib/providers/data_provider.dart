@@ -18,6 +18,7 @@ class DataProvider extends ChangeNotifier {
   }
   double get additionalExpensesSum => additionalSum;
   double get depositExpensesSum => depositSum;
+  double get totalExpensesSum => depositSum + additionalSum;
 
   House getHouse() {
     if (house == null) {
@@ -32,16 +33,6 @@ class DataProvider extends ChangeNotifier {
 
   List<Payment> getPayments() {
     return payments;
-  }
-
-  double getDepositSum() {
-    double sum = 0;
-    for (Payment payment in payments) {
-      if (payment.type == 'deposit') {
-        sum += payment.amount;
-      }
-    }
-    return sum;
   }
 
   void setHouse(House house) {
@@ -66,10 +57,24 @@ class DataProvider extends ChangeNotifier {
   fetchPayments() async {
     try {
       payments = await repository.getPayments(house: getHouse());
+      calculateSums();
+      print('Payments: $payments');
     } catch (e) {
       print('Fehler beim Abrufen der Zahlungen: $e');
     }
     notifyListeners();
+  }
+
+  void calculateSums() {
+    depositSum = 0;
+    additionalSum = 0;
+    for (Payment payment in payments) {
+      if (payment.type == "deposit") {
+        depositSum += payment.amount;
+      } else {
+        additionalSum += payment.amount;
+      }
+    }
   }
 
   addExpense(Expense expense) async {
