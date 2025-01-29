@@ -8,6 +8,7 @@ import 'package:flutter_application_1/repository/sharedPreferences.dart';
 import 'package:flutter_application_1/screens/item_detail_screen.dart';
 import 'package:flutter_application_1/widgets/custom_card.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:intl/intl.dart';
 import 'package:money2/money2.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -242,8 +243,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 selectedMonth = newValue!;
                 _loadAmounts();
               });
-              SharedPreferencesHelper.saveNebenkosten(
-                  'selectedMonth', selectedMonth);
             },
             isExpanded: true,
           ),
@@ -492,9 +491,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _buildExpensesCard() {
     // Ausgabenkarte
-    final expenses = context.watch<DataProvider>().expenses;
-    print("----------------------------------------");
-    print(context.watch<DataProvider>().expenses.length);
+    //List<Expense> expenses = context.watch<DataProvider>().expenses;
+
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -612,7 +610,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                 )
               : const SizedBox(),
-          if (expenses.isNotEmpty) ...[
+          if (context.watch<DataProvider>().expenses.isNotEmpty) ...[
             const SizedBox(height: 8.0),
             const Divider(
               thickness: 1,
@@ -683,7 +681,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       expense.description,
                       style: const TextStyle(color: Colors.white),
                     ),
-                    subtitle: Text(expense.date.toString(),
+                    subtitle: Text(
+                        DateFormat('dd.MM.yyyy').format(expense.date),
                         style: const TextStyle(color: Colors.white)),
                     trailing: Text(
                       '${Money.fromInt((expense.amount * 100).toInt(), code: selectedCurrency.code)}', // Ausgabenbetrag in Währung umrechnen
@@ -715,7 +714,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${Money.fromInt((expenses.fold<double>(0, (sum, expense) => sum + expense.amount) * 100).toInt(), code: selectedCurrency.code)}', // Gesamtausgaben in Währung umrechnen
+                  '${Money.fromInt((context.watch<DataProvider>().expenses.fold<double>(0, (sum, expense) => sum + expense.amount) * 100).toInt(), code: selectedCurrency.code)}', // Gesamtausgaben in Währung umrechnen
                   style: const TextStyle(
                     color: Colors.red,
                     fontWeight: FontWeight.bold,

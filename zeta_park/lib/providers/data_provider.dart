@@ -8,12 +8,16 @@ class DataProvider extends ChangeNotifier {
   final FirestoreDataRepository repository;
   List<Expense> expenses = [];
   List<Payment> payments = [];
+  double depositSum = 0;
+  double additionalSum = 0;
   House? house;
 
   DataProvider({required this.repository}) {
     fetchExpenses();
     fetchPayments();
   }
+  double get additionalExpensesSum => additionalSum;
+  double get depositExpensesSum => depositSum;
 
   House getHouse() {
     if (house == null) {
@@ -30,6 +34,16 @@ class DataProvider extends ChangeNotifier {
     return payments;
   }
 
+  double getDepositSum() {
+    double sum = 0;
+    for (Payment payment in payments) {
+      if (payment.type == 'deposit') {
+        sum += payment.amount;
+      }
+    }
+    return sum;
+  }
+
   void setHouse(House house) {
     this.house = house;
     notifyListeners();
@@ -37,7 +51,11 @@ class DataProvider extends ChangeNotifier {
 
   fetchExpenses() async {
     try {
-      expenses = await repository.getExpenses(house: getHouse());
+      List<Expense> response = await repository.getExpenses(house: getHouse());
+      response.sort(
+        (a, b) => a.date.compareTo(b.date),
+      );
+      expenses = response;
       print('Expenses: $expenses');
     } catch (e) {
       print('Fehler beim Abrufen der Ausgaben: $e');
@@ -57,7 +75,7 @@ class DataProvider extends ChangeNotifier {
   addExpense(Expense expense) async {
     try {
       await repository.addExpense(expense: expense, house: getHouse());
-      //await fetchExpenses();
+      await fetchExpenses();
     } catch (e) {
       print('Fehler beim Hinzufügen der Ausgabe: $e');
     }
@@ -66,7 +84,7 @@ class DataProvider extends ChangeNotifier {
   addPayment(Payment payment) async {
     try {
       await repository.addPayment(payment: payment, house: getHouse());
-      //await fetchPayments();
+      await fetchPayments();
     } catch (e) {
       print('Fehler beim Hinzufügen der Zahlung: $e');
     }
