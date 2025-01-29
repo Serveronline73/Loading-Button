@@ -4,7 +4,7 @@ import 'package:flutter_application_1/repository/data_manager.dart';
 import 'package:flutter_application_1/repository/sharedPreferences.dart';
 import 'package:flutter_application_1/screens/item_detail_screen.dart';
 import 'package:flutter_application_1/widgets/custom_card.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_application_1/widgets/expenses_card.dart';
 import 'package:money2/money2.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -469,241 +469,43 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildExpensesCard() {
-    // Ausgabenkarte
-    final expenses = _dataManager.getExpenses(selectedMonth,
-        selectedYear); // Ausgaben für den ausgewählten Monat und das Jahr
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF3A3C54), Color(0xFF070F2D)],
-          begin: Alignment.bottomLeft, // Verlauf beginnt unten links
-          end: Alignment.topRight, // Verlauf endet oben rechts
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF545A6A)), // Rahmenfarbe
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF488AEC)
-                .withAlpha((0.19 * 255).toInt()), // Schattenfarbe
-            offset: const Offset(0, 4), // Schattenposition
-            blurRadius: 6, // Schattenradius
-            spreadRadius: -1, // Schattenbreite
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Ausgabenliste',
-            style: TextStyle(
-              color: Color(0xFF488AEC),
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Ausgaben für $selectedMonth $selectedYear', // Ausgaben für den ausgewählten Monat und das Jahr
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 16.0),
-          context.watch<RoleManager>().admin
-              ? Column(
-                  children: [
-                    TextField(
-                      controller: _ausgabeController,
-                      decoration: InputDecoration(
-                        labelText: 'Ausgabenbetrag',
-                        labelStyle: const TextStyle(
-                          color: Colors.white,
-                        ),
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) {
-                        setState(() {
-                          ausgabe = double.tryParse(value) ?? 0.00;
-                        });
-                        SharedPreferencesHelper.saveBetrag('ausgabe', ausgabe);
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    TextField(
-                      controller: _ausgabeDescriptionController,
-                      decoration: InputDecoration(
-                        labelText: 'Beschreibung',
-                        labelStyle: const TextStyle(
-                          color: Colors.white,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          ausgabeDescription = value;
-                        });
-                        SharedPreferencesHelper.saveNebenkosten(
-                            'ausgabeDescription', ausgabeDescription);
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (ausgabe > 0 && ausgabeDescription.isNotEmpty) {
-                          final now = DateTime.now();
-                          await _dataManager.saveExpense(
-                            ausgabe,
-                            ausgabeDescription,
-                            '${now.day}.${now.month}.${now.year}',
-                            selectedMonth,
-                            selectedYear,
-                          );
-                          setState(() {
-                            ausgabe = 0.00;
-                            ausgabeDescription = '';
-                            _ausgabeController.clear();
-                            _ausgabeDescriptionController.clear();
-                          });
-                          SharedPreferencesHelper.saveBetrag(
-                              'ausgabe', ausgabe);
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Ausgabe wurde gespeichert'),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                      child: const Text('Ausgabe speichern'),
-                    ),
-                  ],
-                )
-              : const SizedBox(),
-          if (expenses.isNotEmpty) ...[
-            const SizedBox(height: 8.0),
-            const Divider(
-              thickness: 1,
-              color: Color(0xFF488AEC),
-            ),
-            const SizedBox(height: 8.0),
-            const Text(
-              'Ausgabenliste', // Überschrift der Ausgabenliste
-              style: TextStyle(
-                color: Color(0xFF488AEC),
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4.0),
-            ListView.builder(
-              shrinkWrap: true,
-              physics:
-                  const AlwaysScrollableScrollPhysics(), // Scrollen deaktivieren
-              itemCount: expenses.length * 2 - 1, // Anzahl der Ausgaben
-              itemBuilder: (context, index) {
-                // Ausgaben anzeigen
-                if (index.isOdd) {
-                  // Wenn ungerade Indexnummer
-                  return const Divider(
-                    color: Color(0xFF488AEC),
-                    thickness: 1,
-                    height: 1,
-                  );
-                }
-                final Map<String, dynamic> expense =
-                    expenses[index ~/ 2]; // Ausgabenindex
-                return Slidable(
-                  // Ausgaben mit Slidable-Widget anzeigen
-                  endActionPane: context.watch<RoleManager>().admin
-                      ? ActionPane(
-                          motion: const ScrollMotion(),
-                          children: [
-                            SlidableAction(
-                              onPressed: (context) {
-                                _showEditDialog(
-                                    expense); // Dialog für Bearbeiten öffnen
-                              },
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              icon: Icons.edit,
-                              label: 'Bearbeiten',
-                            ),
-                            SlidableAction(
-                              onPressed: (context) {
-                                _showDeleteConfirmation(
-                                    expense); // Dialog für Löschen öffnen
-                              },
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              icon: Icons.delete,
-                              label: 'Löschen',
-                            ),
-                          ],
-                        )
-                      : null,
-                  child: ListTile(
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    title: Text(
-                      expense['description'],
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    subtitle: Text(expense['date'],
-                        style: const TextStyle(color: Colors.white)),
-                    trailing: Text(
-                      '${Money.fromInt((expense['amount'] * 100).toInt(), code: selectedCurrency.code)}', // Ausgabenbetrag in Währung umrechnen
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.red),
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 16.0),
-            const Divider(
-              thickness: 1,
-              color: Color(0xFF488AEC),
-            ),
-            const SizedBox(height: 8.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Text(
-                    'Gesamtausgaben für $selectedMonth $selectedYear:', // Gesamtausgaben für den ausgewählten Monat und das Jahr
-                    style: const TextStyle(
-                      color: Color(0xFF488AEC),
-                      fontSize: 14,
-                    ),
-                    overflow: TextOverflow.ellipsis, // Textüberlauf verhindern
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '${Money.fromInt((expenses.fold<double>(0, (sum, expense) => sum + expense['amount']) * 100).toInt(), code: selectedCurrency.code)}', // Gesamtausgaben in Währung umrechnen
-                  style: const TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
+    return ExpensesCard(
+      dataManager: _dataManager,
+      selectedMonth: selectedMonth,
+      selectedYear: selectedYear,
+      selectedCurrency: selectedCurrency,
+      ausgabeController: _ausgabeController,
+      ausgabeDescriptionController: _ausgabeDescriptionController,
+      ausgabe: ausgabe,
+      ausgabeDescription: ausgabeDescription,
+      onAusgabeChanged: (value) {
+        setState(() {
+          ausgabe = value;
+        });
+      },
+      onAusgabeDescriptionChanged: (value) {
+        setState(() {
+          ausgabeDescription = value;
+        });
+      },
+      onSaveExpense: () async {
+        final now = DateTime.now();
+        await _dataManager.saveExpense(
+          ausgabe,
+          ausgabeDescription,
+          '${now.day}.${now.month}.${now.year}',
+          selectedMonth,
+          selectedYear,
+        );
+        setState(() {
+          ausgabe = 0.00;
+          ausgabeDescription = '';
+          _ausgabeController.clear();
+          _ausgabeDescriptionController.clear();
+        });
+      },
+      onShowEditDialog: _showEditDialog,
+      onShowDeleteConfirmation: _showDeleteConfirmation,
     );
   }
 
