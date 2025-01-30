@@ -4,7 +4,10 @@ import 'package:flutter_application_1/repository/data_manager.dart';
 import 'package:flutter_application_1/repository/sharedPreferences.dart';
 import 'package:flutter_application_1/screens/item_detail_screen.dart';
 import 'package:flutter_application_1/widgets/custom_card.dart';
+import 'package:flutter_application_1/widgets/delete_confirmation_dialog.dart';
+import 'package:flutter_application_1/widgets/edit_expense_dialog.dart';
 import 'package:flutter_application_1/widgets/expenses_card.dart';
+import 'package:flutter_application_1/widgets/payment_fields_nk.dart';
 import 'package:money2/money2.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -372,48 +375,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget paymentFieldsNK() {
-    // Eingabe Felder für die Einzahlung
-    return Row(
-      children: [
-        Expanded(
-          // Expanded Widget für die Flexibilität
-          child: TextField(
-            controller: _betrag1Controller,
-            decoration: InputDecoration(
-              // labelText: 'Aidat Ödemesi',
-              labelText: "Einzahlung NK",
-              labelStyle: const TextStyle(
-                color: Color(0xFF488AEC),
-              ),
-              focusColor: Colors.white, // Fokusfarbe des Textfeldes
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-            keyboardType: TextInputType.number,
-            onChanged: _updateBetrag1, // Funktion zum Update des Betrags
-          ),
-        ),
-        const SizedBox(width: 16.0),
-        Expanded(
-          // Expanded Widget für die Flexibilität
-          child: TextField(
-            controller: _betrag2Controller,
-            decoration: InputDecoration(
-              //labelText: 'Ek Ödemesi',
-              labelText: "Nachzuhlung NK",
-              labelStyle: const TextStyle(
-                color: Color(0xFF488AEC),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-            keyboardType: TextInputType.number,
-            onChanged: _updateBetrag2, // Funktion zum Update des Betrags
-          ),
-        ),
-      ],
+    return PaymentFieldsNK(
+      betrag1Controller: _betrag1Controller,
+      betrag2Controller: _betrag2Controller,
+      updateBetrag1: _updateBetrag1,
+      updateBetrag2: _updateBetrag2,
     );
   }
 
@@ -647,89 +613,22 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _showEditDialog(Map<String, dynamic> expense) {
-    // Funktion zum Anzeigen des Bearbeitungsdialogs
-    final TextEditingController descController = // Beschreibung-Controller
-        TextEditingController(
-            text:
-                expense['description']); // Beschreibung aus der Datenbank laden
-    final TextEditingController amountController = // Betrag-Controller
-        TextEditingController(
-            text:
-                expense['amount'].toString()); // Betrag aus der Datenbank laden
+    final descController = TextEditingController(text: expense['description']);
+    final amountController =
+        TextEditingController(text: expense['amount'].toString());
 
-    showDialog(
-      // Dialog anzeigen
+    EditExpenseDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          // AlertDialog anzeigen
-          backgroundColor: Colors.grey[900],
-          title: const Text('Ausgabe bearbeiten',
-              style: TextStyle(color: Colors.white)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: descController,
-                decoration: const InputDecoration(
-                  labelText: 'Beschreibung',
-                  labelStyle: TextStyle(color: Colors.white70),
-                ),
-                style: const TextStyle(color: Colors.white),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: amountController,
-                decoration: const InputDecoration(
-                  labelText: 'Betrag',
-                  labelStyle: TextStyle(color: Colors.white70),
-                ),
-                keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context), // Dialog schließen
-              child: const Text('Abbrechen',
-                  style: TextStyle(color: Colors.white)),
-            ),
-            TextButton(
-              onPressed: () async {
-                // Funktion zum Speichern der Änderungen
-                final double? newAmount = double.tryParse(
-                    amountController.text); // Neuer Betrag parsen
-                if (newAmount != null) {
-                  // Wenn neuer Betrag vorhanden ist
-                  await _dataManager.updateExpense(
-                    // Ausgabe in der Datenbank aktualisieren
-                    expense,
-                    newAmount,
-                    descController.text,
-                  );
-                  if (mounted) {
-                    // Wenn die App aktiv ist
-                    Navigator.pop(context); // Dialog schließen
-                    setState(() {});
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      // SnackBar anzeigen
-                      const SnackBar(
-                        content: Text('Ausgabe wurde aktualisiert'),
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text(
-                'Speichern',
-                style: TextStyle(color: Colors.green),
-              ),
-            ),
-          ],
-        );
+      descController: descController,
+      amountController: amountController,
+      updateExpense: _dataManager.updateExpense,
+      expense: expense,
+      onUpdate: () {
+        if (mounted) {
+          setState(() {});
+        }
       },
-    );
+    ).show();
   }
 
   void _logout(BuildContext context) async {
@@ -739,45 +638,16 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _showDeleteConfirmation(Map<String, dynamic> expense) {
-    // Funktion zum Anzeigen des Löschdialogs
-    showDialog(
+    DeleteConfirmationDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.grey[900],
-          title: const Text('Ausgabe löschen',
-              style: TextStyle(color: Colors.white)),
-          content: const Text('Möchten Sie diese Ausgabe wirklich löschen?',
-              style: TextStyle(color: Colors.white)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context), // Dialog schließen
-              child: const Text('Abbrechen',
-                  style: TextStyle(color: Colors.white)),
-            ),
-            TextButton(
-              onPressed: () async {
-                // Funktion zum Löschen der Ausgabe
-                await _dataManager
-                    .deleteExpense(expense); // Ausgabe in der Datenbank löschen
-                if (mounted) {
-                  // Wenn die App aktiv ist
-                  Navigator.pop(context); // Dialog schließen
-                  setState(() {});
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    // SnackBar anzeigen
-                    const SnackBar(
-                      // SnackBar mit Nachricht anzeigen
-                      content: Text('Ausgabe wurde gelöscht'),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Löschen', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
+      deleteExpense: _dataManager.deleteExpense,
+      onDelete: () {
+        if (mounted) {
+          setState(() {
+            _dataManager.loadData();
+          });
+        }
       },
-    );
+    ).show(expense);
   }
 }

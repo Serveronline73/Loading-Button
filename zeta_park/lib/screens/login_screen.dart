@@ -73,36 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 _buildLogoContainer(),
                 const SizedBox(height: 24),
                 _buildHeaderText(),
-                //const SizedBox(height: 32),
                 const SizedBox(height: 12),
-                // const Text(
-                //   'User Login',
-                //   style: TextStyle(
-                //     fontSize: 18,
-                //     fontWeight: FontWeight.bold,
-                //     color: Colors.black,
-                //   ),
-                // ),
-                // const SizedBox(height: 12),
-                // if (!_isCodeSent) ...[
-                //   _buildEmailInput(),
-                //   const SizedBox(height: 12),
-                //   //   _buildRequestCodeButton(),
-                //   // ] else ...[
-                //   //   _buildCodeInput(),
-                //   const SizedBox(height: 12),
-                //   _buildLoginButton(
-                //     context,
-                //     'Login',
-                //     Icons.login,
-                //     Colors.black,
-                //     () => _handleLogin(context, 'Email'),
-                //     backgroundColor: Colors.white,
-                //     textColor: Colors.black,
-                //     borderColor: Colors.grey[300],
-                //   ),
-                // ],
-                // const SizedBox(height: 16),
                 _buildAdminLoginSection(),
                 SizedBox(height: 24),
                 _buildTermsText(context),
@@ -240,63 +211,17 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Widget _buildCodeInput() {
-  //   return TextField(
-  //     controller: passwordController,
-  //     decoration: InputDecoration(
-  //       labelText: 'Validation Code',
-  //       border: OutlineInputBorder(
-  //         borderRadius: BorderRadius.circular(8),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Widget _buildRequestCodeButton() {
-  //   return SizedBox(
-  //     width: double.infinity,
-  //     height: 48,
-  //     child: ElevatedButton(
-  //       onPressed:
-  //           _isValidEmail(emailController.text) ? _requestValidationCode : null,
-  //       style: ElevatedButton.styleFrom(
-  //         backgroundColor: Colors.black,
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(8),
-  //         ),
-  //       ),
-  //       child: const Text(
-  //         'Request Validation Code',
-  //         style: TextStyle(
-  //           fontSize: 16,
-  //           color: Colors.white,
-  //           fontWeight: FontWeight.bold,
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // void _requestValidationCode() {
-  //   //Simulierte Validierung
-  //   print(
-  //       'Sending validation code $_fixedValidationCode to ${emailController.text}');
-  //   setState(() {
-  //     _isCodeSent = true;
-  //   });
-  // }
-
   Widget _buildAdminLoginSection() {
     return Column(
       children: [
-        const Text(
-          'Login',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
+        // const Text(
+        //   'Login',
+        //   style: TextStyle(
+        //     fontSize: 18,
+        //     fontWeight: FontWeight.bold,
+        //     color: Colors.black,
+        //   ),
+        // ),
         const SizedBox(height: 12),
         TextField(
           controller: emailController,
@@ -323,7 +248,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 12),
         _buildLoginButton(
           context,
-          'Admin Login',
+          'Login',
           Icons.login,
           Colors.black,
           () => _handleLogin(context, 'Admin'),
