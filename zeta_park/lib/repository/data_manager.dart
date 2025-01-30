@@ -1,7 +1,5 @@
 import 'dart:convert';
-
-import 'package:flutter_application_1/repository/sharedPreferences.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_application_1/repository/firestore_repository.dart';
 
 class DataManager {
   static final DataManager _instance = DataManager._internal();
@@ -14,15 +12,12 @@ class DataManager {
 
   List<Map<String, dynamic>> expenses = [];
   Map<String, Map<String, Map<int, Map<String, double>>>> blockAmounts = {};
+  final FirebaseRepository _firebaseRepo = FirebaseRepository();
 
   // Laden der Ausgabenliste
   Future<void> loadExpenses() async {
     try {
-      final expensesJson = await SharedPreferencesRepository.loadExpenses();
-      if (expensesJson != null) {
-        expenses = List<Map<String, dynamic>>.from(
-            jsonDecode(expensesJson).map((x) => Map<String, dynamic>.from(x)));
-      }
+      expenses = await _firebaseRepo.loadExpenses();
     } catch (e) {
       print('Error loading expenses: $e');
     }
@@ -33,30 +28,74 @@ class DataManager {
     await loadPayments();
   }
 
+  Future<void> deleteExpense(Map<String, dynamic> expense) async {
+    try {
+      // Lösche die Ausgabe aus der Liste
+      expenses.remove(expense);
+
+      // Lösche auch die Ausgabe in Firebase
+      await _firebaseRepo.deleteExpense(expense);
+
+      print('Expense deleted locally and from Firebase');
+    } catch (e) {
+      print('Error deleting expense: $e');
+    }
+  }
+
+  Future<void> updateExpense(Map<String, dynamic> expense, double newAmount,
+      String newDescription) async {
+    final int index = expenses.indexOf(expense);
+    if (index != -1) {
+      // Aktualisiere die Ausgabe in der lokalen Liste
+      expenses[index]['amount'] = newAmount;
+      expenses[index]['description'] = newDescription;
+
+      try {
+        // Aktualisiere auch die Ausgabe in Firebase
+        await _firebaseRepo.updateExpense(expense, newAmount, newDescription);
+        print('Expense updated locally and in Firebase');
+      } catch (e) {
+        print('Error updating expense: $e');
+      }
+    }
+  }
+
   // Laden der Zahlungen
   Future<void> loadPayments() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final paymentsJson = prefs.getString('payments');
-      if (paymentsJson != null) {
-        final Map<String, dynamic> decoded = jsonDecode(paymentsJson);
-        blockAmounts = Map<String, Map<String, Map<int, Map<String, double>>>>.from(
-            decoded.map((key, value) => MapEntry(
-                key,
-                Map<String, Map<int, Map<String, double>>>.from(
-                    (value as Map<String, dynamic>).map((monthKey, monthValue) => MapEntry(
-                        monthKey,
-                        Map<int, Map<String, double>>.from((monthValue as Map<String, dynamic>)
-                            .map((yearKey, yearValue) => MapEntry(int.parse(yearKey), Map<String, double>.from(yearValue as Map<String, dynamic>))))))))));
-      }
+      final payments = await _firebaseRepo.loadPayments();
+      blockAmounts = _mapPaymentsToBlockAmounts(payments);
     } catch (e) {
       print('Error loading payments: $e');
     }
   }
 
+  Map<String, Map<String, Map<int, Map<String, double>>>>
+      _mapPaymentsToBlockAmounts(List<Map<String, dynamic>> payments) {
+    final Map<String, Map<String, Map<int, Map<String, double>>>> blockMap = {};
+    for (var payment in payments) {
+      String block = payment['block'];
+      String month = payment['month'];
+      int year = payment['year'];
+      double aidat = payment['aidat'];
+      double ek = payment['ek'];
+
+      blockMap.putIfAbsent(block, () => {});
+      blockMap[block]!.putIfAbsent(month, () => {});
+      blockMap[block]![month]!.putIfAbsent(year, () => {});
+
+      blockMap[block]![month]![year] = {
+        'aidat': aidat,
+        'ek': ek,
+      };
+    }
+    return blockMap;
+  }
+
   // Speichern der Ausgaben
   Future<void> saveExpense(double amount, String description, String date,
       String month, int year) async {
+    await _firebaseRepo.saveExpense(amount, description, date, month, year);
     expenses.add({
       'amount': amount,
       'description': description,
@@ -64,13 +103,6 @@ class DataManager {
       'month': month,
       'year': year,
     });
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('expenses', jsonEncode(expenses));
-    } catch (e) {
-      print('Error saving expense: $e');
-    }
   }
 
   // Ausgabenliste Monat und Jahr
@@ -81,46 +113,18 @@ class DataManager {
         .toList();
   }
 
-  Map<String, dynamic> _serializePaymentData() {
-    final Map<String, dynamic> serialized = {};
-    blockAmounts.forEach((block, monthData) {
-      serialized[block] = {};
-      monthData.forEach((month, yearData) {
-        serialized[block][month] = {};
-        yearData.forEach((year, amounts) {
-          // Convert year to string and ensure amounts are serializable
-          serialized[block][month][year.toString()] = {
-            'aidat': amounts['aidat']?.toDouble() ?? 0.0,
-            'ek': amounts['ek']?.toDouble() ?? 0.0,
-          };
-        });
-      });
-    });
-    return serialized;
-  }
-
+  // Speichern der Zahlungen
   Future<void> savePayment(
       String block, String month, int year, double aidat, double ek) async {
-    try {
-      // Initialize nested maps safely
-      blockAmounts.putIfAbsent(block, () => {});
-      blockAmounts[block]!.putIfAbsent(month, () => {});
-      blockAmounts[block]![month]!.putIfAbsent(year, () => {});
+    await _firebaseRepo.savePayment(block, month, year, aidat, ek);
+    blockAmounts.putIfAbsent(block, () => {});
+    blockAmounts[block]!.putIfAbsent(month, () => {});
+    blockAmounts[block]![month]!.putIfAbsent(year, () => {});
 
-      // Save the payment
-      blockAmounts[block]![month]![year] = {
-        'aidat': aidat,
-        'ek': ek,
-      };
-
-      // Serialize and save to SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final serializedData = _serializePaymentData();
-      await prefs.setString('payments', jsonEncode(serializedData));
-    } catch (e) {
-      print('Fehler beim Speichern der Zahlung: $e');
-      rethrow; // Optional: rethrow to handle error in UI
-    }
+    blockAmounts[block]![month]![year] = {
+      'aidat': aidat,
+      'ek': ek,
+    };
   }
 
   Map<String, Map<String, Map<int, Map<String, double>>>> getBlockAmounts() {
@@ -128,42 +132,28 @@ class DataManager {
   }
 
   Future<void> saveNebenkosten(String key, String value) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(key, value);
-    } catch (e) {
-      print('Error saving additional costs: $e');
-    }
+    // Dieser Abschnitt kann angepasst werden, um Nebenkosten zu speichern
+    print('Saving additional costs: $key = $value');
   }
 
-  Future<void> deleteExpense(Map<String, dynamic> expense) async {
-    expenses.remove(expense);
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('expenses', jsonEncode(expenses));
-    } catch (e) {
-      print('Error deleting expense: $e');
-    }
-  }
+  // Future<void> deleteExpense(Map<String, dynamic> expense) async {
+  //   expenses.remove(expense);
+  //   // Firebase löschen wäre hier ebenfalls möglich
+  //   // z.B. await _firebaseRepo.deleteExpense(expense);
+  // }
 
-  Future<void> updateExpense(Map<String, dynamic> expense, double newAmount,
-      String newDescription) async {
-    final int index = expenses.indexOf(expense);
-    if (index != -1) {
-      expenses[index]['amount'] = newAmount;
-      expenses[index]['description'] = newDescription;
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('expenses', jsonEncode(expenses));
-      } catch (e) {
-        print('Error updating expense: $e');
-      }
-    }
-  }
+  // Future<void> updateExpense(Map<String, dynamic> expense, double newAmount,
+  //     String newDescription) async {
+  //   final int index = expenses.indexOf(expense);
+  //   if (index != -1) {
+  //     expenses[index]['amount'] = newAmount;
+  //     expenses[index]['description'] = newDescription;
+  //     // Firebase aktualisieren könnte auch hier eingebaut werden
+  //   }
+  // }
 
   Map<int, double> getPayments(String month, int year) {
-    // Beispiel-Daten, ersetzen Sie dies durch Ihre echten Daten
-    // Hier sollten Sie die Daten für den ausgewählten Monat und das Jahr zurückgeben
+    // Beispiel-Daten, ersetzen Sie dies durch echte Daten aus Firebase
     return {
       0: 5.0,
       1: 25.0,
@@ -173,8 +163,7 @@ class DataManager {
   }
 
   Map<int, double> getExpensesData() {
-    // Beispiel-Daten, ersetzen Sie dies durch Ihre echten Daten
-    // Hier sollten Sie die Daten für den ausgewählten Monat und das Jahr zurückgeben
+    // Beispiel-Daten, ersetzen Sie dies durch echte Daten aus Firebase
     return {
       0: 10.0,
       1: 50.0,
