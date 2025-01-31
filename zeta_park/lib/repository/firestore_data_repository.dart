@@ -21,14 +21,14 @@ class FirestoreDataRepository {
     }
   }
 
-  Future<void> addExpense(
-      {required Expense expense, required House house}) async {
-    try {
-      await _firestore.collection('${house.id}/expenses').add(expense.toMap());
-    } catch (e) {
-      print('Fehler beim Hinzufügen der Ausgabe: $e');
-    }
-  }
+  // Future<void> addExpense(
+  //     {required Expense expense, required House house}) async {
+  //   try {
+  //     await _firestore.collection('${house.id}/expenses').add(expense.toMap());
+  //   } catch (e) {
+  //     print('Fehler beim Hinzufügen der Ausgabe: $e');
+  //   }
+  // }
 
   Future<List<Payment>> getPayments({required House house}) async {
     try {

@@ -94,8 +94,10 @@ class DataManager {
   // Speichern der Ausgaben
   Future<void> saveExpense(double amount, String description, String date,
       String month, int year) async {
-    await _firebaseRepo.saveExpense(amount, description, date, month, year);
+    String firebaseid =
+        await _firebaseRepo.saveExpense(amount, description, date, month, year);
     expenses.add({
+      'id': firebaseid,
       'amount': amount,
       'description': description,
       'date': date,

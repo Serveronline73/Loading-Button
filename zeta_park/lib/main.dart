@@ -4,18 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/app.dart';
 import 'package:flutter_application_1/providers/role.dart';
-import 'package:flutter_application_1/repository/data_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'firebase_options.dart';
 import 'notifiers/theme_notifier.dart';
 import 'repository/firebase_auth_repository.dart';
 
 // Hauptfunktion der App
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(MyApp());
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Laden der gespeicherten Einstellungen
   final prefs = await SharedPreferences.getInstance();
@@ -33,15 +34,13 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => RoleManager()),
+        // ChangeNotifierProvider(create: (_) => DataManager()),
         Provider<FirebaseAuthRepository>(
             create: (context) => FirebaseAuthRepository()),
         ChangeNotifierProvider(
           create: (context) => ThemeNotifier(isDarkMode),
         ),
-        ChangeNotifierProvider(create: (context) => RoleManager()),
-        Provider(
-            create: (context) =>
-                DataManager()), // DataManager Provider hinzufügen
       ],
       child: const MyApp(),
     ),

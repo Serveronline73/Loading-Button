@@ -32,8 +32,7 @@ class DeleteConfirmationDialog {
             TextButton(
               onPressed: () async {
                 // Funktion zum Löschen der Ausgabe
-                await deleteExpense(
-                    expense); // Ausgabe in der Datenbank löschen
+                deleteExpense(expense); // Ausgabe in der Datenbank löschen
                 Navigator.pop(context); // Dialog schließen
                 onDelete();
                 ScaffoldMessenger.of(context).showSnackBar(

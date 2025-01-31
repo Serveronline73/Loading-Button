@@ -4,18 +4,21 @@ class FirebaseRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Speichern von Ausgaben
-  Future<void> saveExpense(double amount, String description, String date,
+  Future<String> saveExpense(double amount, String description, String date,
       String month, int year) async {
     try {
-      await _firestore.collection('expenses').add({
+      DocumentReference docRef = await _firestore.collection('expenses').add({
         'amount': amount,
         'description': description,
         'date': date,
         'month': month,
         'year': year,
       });
+      String expenseId = docRef.id;
+      return expenseId;
     } catch (e) {
       print('Error saving expense to Firebase: $e');
+      return "";
     }
   }
 
@@ -23,7 +26,11 @@ class FirebaseRepository {
   Future<List<Map<String, dynamic>>> loadExpenses() async {
     try {
       final snapshot = await _firestore.collection('expenses').get();
-      return snapshot.docs.map((doc) => doc.data()).toList();
+      return snapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
     } catch (e) {
       print('Error loading expenses from Firebase: $e');
       return [];
@@ -64,6 +71,7 @@ class FirebaseRepository {
           expense['id']; // Annahme: Jede Ausgabe hat eine eindeutige ID
 
       await _firestore.collection('expenses').doc(expenseId).delete();
+
       print('Expense deleted from Firebase');
     } catch (e) {
       print('Error deleting expense from Firestore: $e');
