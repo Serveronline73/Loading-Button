@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'firebase_options.dart';
+import 'notifiers/login_notifier.dart';
 import 'notifiers/theme_notifier.dart';
 import 'repository/firebase_auth_repository.dart';
 
@@ -41,6 +42,7 @@ void main() async {
         ChangeNotifierProvider(
           create: (context) => ThemeNotifier(isDarkMode),
         ),
+        ChangeNotifierProvider(create: (_) => LoginNotifier()),
       ],
       child: const MyApp(),
     ),

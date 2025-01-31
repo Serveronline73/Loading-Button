@@ -24,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final bool _isCodeSent = false;
   final String _fixedValidationCode = '123456';
   String _errorMessage = '';
+  final ValueNotifier<bool> isCodeSentNotifier = ValueNotifier(false);
 
   final List<String> validEmailDomains = [
     '.com',
@@ -214,14 +215,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildAdminLoginSection() {
     return Column(
       children: [
-        // const Text(
-        //   'Login',
-        //   style: TextStyle(
-        //     fontSize: 18,
-        //     fontWeight: FontWeight.bold,
-        //     color: Colors.black,
-        //   ),
-        // ),
         const SizedBox(height: 12),
         TextField(
           controller: emailController,
@@ -292,11 +285,11 @@ class _LoginScreenState extends State<LoginScreen> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Login Fehler'),
-            content: Text('Bitte Email oder Passwort überprüfen'),
+            title: const Text('Login Fehler'),
+            content: const Text('Bitte Email oder Passwort überprüfen'),
             actions: [
               TextButton(
-                child: Text('OK'),
+                child: const Text('OK'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
