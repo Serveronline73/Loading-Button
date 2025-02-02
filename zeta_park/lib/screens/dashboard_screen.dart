@@ -32,7 +32,7 @@ class DashboardScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            _buildStatisticCard(
+            _buildExpenseStatisticCard(
               context,
               "Einzahlungs Statistik",
               'Einzahlungen für $selectedMonth $selectedYear',
@@ -47,6 +47,71 @@ class DashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _buildExpenseLegend(groupedExpenses, expenseColors),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpenseStatisticCard(BuildContext context, String title,
+      String subtitle, List<BarChartGroupData> data) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 200,
+              child: BarChart(
+                BarChartData(
+                  barGroups: data,
+                  borderData: FlBorderData(show: false),
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: false, // Hide left titles
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          return Text(
+                            value.toInt().toString(),
+                            style: const TextStyle(color: Colors.white),
+                          );
+                        },
+                      ),
+                    ),
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          final paymentCount = payments.length;
+                          return Text(
+                            paymentCount.toString(),
+                            style: const TextStyle(color: Colors.white),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -82,13 +147,7 @@ class DashboardScreen extends StatelessWidget {
                   titlesData: FlTitlesData(
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          return Text(
-                            value.toInt().toString(),
-                            style: const TextStyle(color: Colors.white),
-                          );
-                        },
+                        showTitles: false, // Hide left titles
                       ),
                     ),
                     bottomTitles: AxisTitles(
@@ -113,6 +172,20 @@ class DashboardScreen extends StatelessWidget {
                           );
                         },
                       ),
+                    ),
+                  ),
+                  barTouchData: BarTouchData(
+                    touchTooltipData: BarTouchTooltipData(
+                      tooltipPadding: const EdgeInsets.all(8),
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        return BarTooltipItem(
+                          rod.toY.toString(),
+                          const TextStyle(
+                            color: Colors.yellow, // Text color when hovering
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
